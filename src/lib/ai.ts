@@ -9,14 +9,21 @@ async function invoke<T>(op: string, payload: unknown): Promise<T> {
   if (error) {
     // Pull the structured error token the function returned (e.g. LIMIT_REACHED,
     // NOT_SIGNED_IN) so the UI can show the right message instead of a generic one.
+    // Also capture `detail` — the real server-side cause — and log it so failures
+    // aren't a black box (open devtools to read it).
     let token = ''
+    let detail = ''
     try {
       const ctx = await (error as any).context?.json?.()
       if (ctx?.error) token = String(ctx.error)
+      if (ctx?.detail) detail = String(ctx.detail)
     } catch {
       /* body wasn't readable JSON — fall back below */
     }
-    throw new Error(token || 'AI_FAILED')
+    if (detail) console.error(`[ai:${op}] ${token || 'error'} — ${detail}`)
+    const err = new Error(token || 'AI_FAILED')
+    ;(err as any).detail = detail
+    throw err
   }
   if (data?.error) throw new Error(data.error)
   return data.result as T

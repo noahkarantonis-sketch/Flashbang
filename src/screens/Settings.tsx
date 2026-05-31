@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../store'
 import { supabase } from '../lib/supabase'
 import { startProCheckout, openBillingPortal, fetchPlan } from '../lib/billing'
-import { APP_VERSION } from '../lib/version'
+import { DISPLAY_VERSION } from '../lib/version'
 
 const SUPPORT_PHONE = '+61491111623'
 const SUPPORT_PHONE_DISPLAY = '+61 491 111 623'
@@ -332,7 +332,7 @@ export function Settings() {
       </p>
 
       <p className="muted" style={{ fontSize: 12, textAlign: 'center', marginTop: 24 }}>
-        Flashbang · v{APP_VERSION} · your study data stays on this device
+        Flashbang · v{DISPLAY_VERSION} · your study data stays on this device
       </p>
     </>
   )
