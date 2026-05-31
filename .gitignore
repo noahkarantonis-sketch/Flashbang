@@ -1,0 +1,17 @@
+# secrets / env
+.env
+.env.local
+# (.env holds your Supabase URL + public anon key — fine to keep local)
+
+# deps & build output
+node_modules/
+out/
+release/
+dist/
+
+# bundled tooling (large binaries, re-downloadable)
+.tools/
+
+# misc
+*.log
+.DS_Store

@@ -1,0 +1,57 @@
+name: Build Windows Installer
+
+# Builds the Flashbang NSIS installer (one-click, auto-replaces previous install,
+# uninstaller in Add/Remove Programs). GitHub's Windows runner has admin rights,
+# so the winCodeSign symlink error that blocks local builds never happens here.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # The Vite client needs the Supabase URL + anon key at build time
+      # (both public-safe — the anon key ships in the app anyway).
+      - name: Write .env from secrets
+        shell: bash
+        run: |
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> .env
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env
+
+      - name: Build + package installer
+        env:
+          # skip code-signing (unsigned build; SmartScreen "Run anyway" is expected)
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:win
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flashbang-Setup
+          path: release/Flashbang-Setup-*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      # On a version tag (e.g. git tag v0.1.1 && git push --tags) also attach the
+      # installer to a GitHub Release so users can download it directly.
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/Flashbang-Setup-*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
