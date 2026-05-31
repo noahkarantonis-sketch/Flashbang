@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Flashbang — Flashcards that know where you're weak</title>
+<meta name="description" content="Scan your notes, get smart flashcards, and study exactly where you're weak. Spaced repetition that adapts to your tests, your mistakes, and your exam dates." />
+
+<!-- Open Graph / social preview -->
+<meta property="og:title" content="Flashbang — Flashcards that know where you're weak" />
+<meta property="og:description" content="Scan your notes, get smart flashcards, and study exactly where you're weak." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="/og.png" />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface-2: #f1eee7;
+    --ink: #1a1a1a;
+    --ink-soft: #6b6760;
+    --accent: #2b3a55;
+    --accent-ink: #ffffff;
+    --terracotta: #b8654a;
+    --amber: #c8923a;
+    --sage: #6f8a6a;
+    --border: #e4e0d7;
+    --radius: 14px;
+    --maxw: 1080px;
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* ---- buttons ---- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 13px 22px; border-radius: 11px;
+    font-weight: 600; font-size: 15px; cursor: pointer;
+    border: 1px solid transparent; transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(43,58,85,.22); }
+  .btn-ghost { background: transparent; color: var(--ink); border-color: var(--border); }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-lg { padding: 16px 28px; font-size: 16px; }
+
+  /* ---- nav ---- */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(247,245,240,.82); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 11px; font-weight: 700; font-size: 18px; letter-spacing: -.01em; }
+  .nav-links { display: flex; align-items: center; gap: 26px; font-size: 15px; color: var(--ink-soft); }
+  .nav-links a:hover { color: var(--ink); }
+  @media (max-width: 680px) { .nav-links a:not(.btn) { display: none; } }
+
+  /* ---- hero ---- */
+  .hero { padding: 92px 0 64px; text-align: center; }
+  .eyebrow {
+    display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--accent);
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 26px;
+  }
+  h1 {
+    font-size: clamp(38px, 6vw, 62px); line-height: 1.05; letter-spacing: -.025em;
+    font-weight: 800; max-width: 16ch; margin: 0 auto 22px;
+  }
+  h1 .hl { color: var(--accent); }
+  .sub { font-size: clamp(17px, 2.3vw, 20px); color: var(--ink-soft); max-width: 56ch; margin: 0 auto 34px; }
+  .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .cta-note { margin-top: 16px; font-size: 14px; color: var(--ink-soft); }
+
+  /* ---- app shot mock ---- */
+  .shot {
+    margin: 64px auto 0; max-width: 920px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; box-shadow: 0 30px 70px -30px rgba(26,26,26,.28);
+    overflow: hidden;
+  }
+  .shot-bar { display: flex; gap: 7px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  .shot-bar span { width: 11px; height: 11px; border-radius: 50%; background: var(--border); }
+  .shot-body { display: grid; grid-template-columns: 1.1fr .9fr; gap: 0; min-height: 320px; }
+  @media (max-width: 680px) { .shot-body { grid-template-columns: 1fr; } }
+  .shot-l { padding: 30px; border-right: 1px solid var(--border); }
+  @media (max-width: 680px) { .shot-l { border-right: none; border-bottom: 1px solid var(--border); } }
+  .card-demo {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 22px; margin-bottom: 14px;
+  }
+  .card-demo .q { font-weight: 600; font-size: 15px; margin-bottom: 10px; }
+  .card-demo .a { font-size: 14px; color: var(--ink-soft); }
+  .chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-top: 12px; }
+  .chip.weak { background: rgba(184,101,74,.13); color: var(--terracotta); }
+  .chip.ok   { background: rgba(200,146,58,.15); color: var(--amber); }
+  .chip.strong { background: rgba(111,138,106,.16); color: var(--sage); }
+  .shot-r { padding: 30px; display: flex; flex-direction: column; justify-content: center; gap: 16px; background: var(--bg); }
+  .stat { }
+  .stat .n { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+  .stat .l { font-size: 13px; color: var(--ink-soft); }
+  .bar { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .bar > i { display: block; height: 100%; border-radius: 999px; }
+
+  /* ---- sections ---- */
+  section { padding: 84px 0; }
+  .section-head { text-align: center; max-width: 60ch; margin: 0 auto 52px; }
+  .section-head h2 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -.02em; font-weight: 800; margin-bottom: 14px; }
+  .section-head p { color: var(--ink-soft); font-size: 17px; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  @media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; }
+  .step .num { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 14px; letter-spacing: .04em; }
+  .step h3 { font-size: 19px; margin-bottom: 8px; letter-spacing: -.01em; }
+  .step p { color: var(--ink-soft); font-size: 15px; }
+
+  .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  @media (max-width: 760px) { .features { grid-template-columns: 1fr; } }
+  .feature { display: flex; gap: 18px; padding: 26px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .feature .ic { flex: 0 0 44px; height: 44px; border-radius: 11px; background: var(--surface-2); display: grid; place-items: center; color: var(--accent); }
+  .feature h3 { font-size: 18px; margin-bottom: 6px; letter-spacing: -.01em; }
+  .feature p { color: var(--ink-soft); font-size: 15px; }
+
+  /* ---- pricing ---- */
+  .alt { background: var(--surface-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .prices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; max-width: 760px; margin: 0 auto; }
+  @media (max-width: 680px) { .prices { grid-template-columns: 1fr; } }
+  .price {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 32px;
+    display: flex; flex-direction: column;
+  }
+  .price.pro { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); position: relative; }
+  .price .tag { position: absolute; top: -12px; left: 32px; background: var(--accent); color: var(--accent-ink); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
+  .price h3 { font-size: 20px; margin-bottom: 6px; }
+  .price .amt { font-size: 40px; font-weight: 800; letter-spacing: -.02em; margin: 10px 0 4px; }
+  .price .amt small { font-size: 16px; font-weight: 500; color: var(--ink-soft); }
+  .price ul { list-style: none; margin: 20px 0 26px; display: flex; flex-direction: column; gap: 11px; }
+  .price li { font-size: 15px; color: var(--ink-soft); display: flex; gap: 10px; align-items: flex-start; }
+  .price li svg { flex: 0 0 18px; margin-top: 3px; color: var(--sage); }
+  .price .btn { width: 100%; justify-content: center; margin-top: auto; }
+
+  /* ---- install steps ---- */
+  .install-steps {
+    max-width: 540px; margin: 30px auto 0; text-align: left;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px 28px;
+  }
+  .install-steps h3 { font-size: 16px; margin-bottom: 14px; letter-spacing: -.01em; }
+  .install-steps ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .install-steps li { font-size: 15px; line-height: 1.5; }
+  .install-steps code { background: var(--surface-2); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+
+  /* ---- footer ---- */
+  footer { padding: 56px 0; border-top: 1px solid var(--border); color: var(--ink-soft); font-size: 14px; }
+  footer .wrap { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+
+  .accent-burst { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- inline reusable logo -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="flash" viewBox="0 0 64 64">
+    <path d="M32 3 L37 27 L61 32 L37 37 L32 61 L27 37 L3 32 L27 27 Z" fill="currentColor"/>
+    <g stroke="currentColor" stroke-width="2.6" stroke-linecap="round" opacity="0.5">
+      <line x1="46" y1="18" x2="51.5" y2="12.5"/><line x1="18" y1="18" x2="12.5" y2="12.5"/>
+      <line x1="46" y1="46" x2="51.5" y2="51.5"/><line x1="18" y1="46" x2="12.5" y2="51.5"/>
+    </g>
+  </symbol>
+</svg>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg width="26" height="26" class="accent-burst"><use href="#flash"/></svg>
+      Flashbang
+    </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a class="btn btn-primary" href="#download">Download</a>
+    </div>
+  </div>
+</nav>
+
+<div id="top"></div>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Smart flashcards that know where you're weak</span>
+    <h1>Flashcards that <span class="hl">study you back</span></h1>
+    <p class="sub">
+      Scan your notes, get smart flashcards in seconds, and review exactly where you're weak.
+      Flashbang schedules itself around your mistakes, your test results, and your real exam dates.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary btn-lg" href="#download">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download for Windows
+      </a>
+      <a class="btn btn-ghost btn-lg" href="#pricing">See pricing</a>
+    </div>
+    <p class="cta-note">Free to start — 5 card generations a week, no card limit on review.</p>
+
+    <!-- mock app shot -->
+    <div class="shot">
+      <div class="shot-bar"><span></span><span></span><span></span></div>
+      <div class="shot-body">
+        <div class="shot-l">
+          <div class="card-demo">
+            <div class="q">What does the accounting equation state?</div>
+            <div class="a">Assets = Liabilities + Owner's Equity</div>
+            <span class="chip strong">Strong · review in 12d</span>
+          </div>
+          <div class="card-demo">
+            <div class="q">Define a contingent liability.</div>
+            <div class="a">A possible obligation depending on a future event…</div>
+            <span class="chip weak">Weak · due now</span>
+          </div>
+        </div>
+        <div class="shot-r">
+          <div class="stat"><div class="n">Accounting</div><div class="l">Exam in 5 days · confidence by topic</div></div>
+          <div>
+            <div class="l" style="font-size:13px;color:var(--ink-soft);margin-bottom:6px">Cash budgets</div>
+            <div class="bar"><i style="width:42%;background:var(--terracotta)"></i></div>
+          </div>
+          <div>
+            <div class="l" style="font-size:13px;color:var(--ink-soft);margin-bottom:6px">Balance day adjustments</div>
+            <div class="bar"><i style="width:68%;background:var(--amber)"></i></div>
+          </div>
+          <div>
+            <div class="l" style="font-size:13px;color:var(--ink-soft);margin-bottom:6px">Accounting equation</div>
+            <div class="bar"><i style="width:91%;background:var(--sage)"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>From a messy page to mastery</h2>
+      <p>Three steps. No manual card-making, no guessing what to revise.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">01</div>
+        <h3>Scan or paste</h3>
+        <p>Photograph handwritten notes, drop in a PDF, or paste text. Flashbang reads it all.</p>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <h3>Get smart cards</h3>
+        <p>AI turns it into clean question-and-answer cards, grouped by topic, ready to review.</p>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h3>Study where it counts</h3>
+        <p>Spaced repetition prioritises your weak spots and the topics on your next test.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Built to find your blind spots</h2>
+      <p>Everything a flashcard app should do, plus the part that actually matters — knowing where you're weak.</p>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.66-.9l.82-1.2A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3"/></svg></div>
+        <div><h3>Scan handwriting</h3><p>Turn a photo of your own messy notes into a full deck — no typing required.</p></div>
+      </div>
+      <div class="feature">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></div>
+        <div><h3>Adaptive spaced repetition</h3><p>A proven review algorithm tuned by your results and exam dates, so nothing slips.</p></div>
+      </div>
+      <div class="feature">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="6" cy="18" r="2"/><path d="M10.5 10.5 6.5 7M13.5 11l4-3M11 13.5l-4 3"/></svg></div>
+        <div><h3>3D knowledge graph</h3><p>See every topic, note and card connected — coloured by how confident you are.</p></div>
+      </div>
+      <div class="feature">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg></div>
+        <div><h3>Hints that learn you</h3><p>Stuck? Get a nudge written for the exact mistake you keep making — not a generic hint.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Simple pricing</h2>
+      <p>Start free. Upgrade when you're hooked.</p>
+    </div>
+    <div class="prices">
+      <div class="price">
+        <h3>Free</h3>
+        <div class="amt">$0</div>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 5 card generations / week</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Unlimited review &amp; spaced repetition</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Knowledge graph &amp; hints</li>
+        </ul>
+        <a class="btn btn-ghost" href="#download">Download free</a>
+      </div>
+      <div class="price pro">
+        <span class="tag">For serious students</span>
+        <h3>Pro</h3>
+        <div class="amt">$6 <small>/ month</small></div>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 250 card generations / week</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Everything in Free</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Priority on new features</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Cancel anytime</li>
+        </ul>
+        <a class="btn btn-primary" id="buy-pro" href="#download">Get Pro</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="download" class="alt">
+  <div class="wrap" style="text-align:center">
+    <div class="section-head" style="margin-bottom:32px">
+      <h2>Download Flashbang</h2>
+      <p>Free to start. Windows desktop app — Mac &amp; mobile coming soon.</p>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-primary btn-lg" id="download-win" href="https://github.com/noahkarantonis-sketch/Flashbang/releases/download/v0.1.1/Flashbang-0.1.1-win.zip">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download for Windows
+      </a>
+    </div>
+    <p class="cta-note">Version 0.1.1 · ~129&nbsp;MB · Windows 10/11</p>
+
+    <div class="install-steps">
+      <h3>Setting up — 4 quick steps</h3>
+      <ol>
+        <li><strong>Download</strong> the file above (a <code>.zip</code>).</li>
+        <li><strong>Unzip it</strong> — right-click the downloaded file → <em>Extract All</em>.</li>
+        <li>Open the unzipped folder and <strong>double-click <code>Flashbang.exe</code></strong>.<br/>
+            <span class="muted">First launch only: if Windows shows a blue <em>"Windows protected your PC"</em> box, click <strong>More info → Run anyway</strong>. (It's safe — the app just isn't code-signed yet.)</span></li>
+        <li><strong>Sign up</strong> with your email and start making cards.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top" style="font-size:16px">
+      <svg width="22" height="22" class="accent-burst"><use href="#flash"/></svg>
+      Flashbang
+    </a>
+    <div>© 2026 Flashbang · Built for students</div>
+  </div>
+</footer>
+
+</body>
+</html>
