@@ -30,6 +30,7 @@ const VERDICT_GRADE: Record<AnswerGrade['verdict'], Grade> = {
   partial: 'hard',
   incorrect: 'forgot'
 }
+const gradeLabel = (g: Grade) => g.charAt(0).toUpperCase() + g.slice(1)
 const VERDICT_LABEL: Record<AnswerGrade['verdict'], string> = {
   correct: 'Correct',
   partial: 'Partly right',
@@ -178,11 +179,6 @@ export function Study({
       })
       setAnswerGrade(result)
       setRevealed(true)
-      if (autoAdvance) {
-        // brief beat so the verdict is visible, then advance
-        const g = VERDICT_GRADE[result.verdict]
-        setTimeout(() => grade(g), 900)
-      }
     } catch {
       setAnswerGrade({ verdict: 'partial', feedback: "Couldn't grade that automatically — check the answer below and grade yourself." })
       setRevealed(true)
@@ -296,14 +292,25 @@ export function Study({
             </div>
           )}
 
-          <div className="label" style={{ textAlign: 'center' }}>
-            {suggested ? 'Suggested — adjust if needed' : 'How did you go?'}
-          </div>
-          <div className="btn-row" style={{ maxWidth: 380, marginInline: 'auto' }}>
-            <button className="btn" style={{ background: 'var(--weak)', color: '#fff', outline: suggested === 'forgot' ? '2px solid var(--ink)' : 'none' }} onClick={() => grade('forgot')}>Forgot</button>
-            <button className="btn" style={{ background: 'var(--mid)', color: '#3a2e16', outline: suggested === 'hard' ? '2px solid var(--ink)' : 'none' }} onClick={() => grade('hard')}>Hard</button>
-            <button className="btn" style={{ background: 'var(--strong)', color: '#16261a', outline: suggested === 'easy' ? '2px solid var(--ink)' : 'none' }} onClick={() => grade('easy')}>Easy</button>
-          </div>
+          {autoAdvance && suggested ? (
+            <div style={{ maxWidth: 380, marginInline: 'auto', textAlign: 'center' }}>
+              <button className="btn" style={{ width: '100%' }} onClick={() => grade(suggested)}>Next card</button>
+              <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+                Auto-graded “{gradeLabel(suggested)}” — take your time, then continue.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="label" style={{ textAlign: 'center' }}>
+                {suggested ? 'Suggested — adjust if needed' : 'How did you go?'}
+              </div>
+              <div className="btn-row" style={{ maxWidth: 380, marginInline: 'auto' }}>
+                <button className="btn" style={{ background: 'var(--weak)', color: '#fff', outline: suggested === 'forgot' ? '2px solid var(--ink)' : 'none' }} onClick={() => grade('forgot')}>Forgot</button>
+                <button className="btn" style={{ background: 'var(--mid)', color: '#3a2e16', outline: suggested === 'hard' ? '2px solid var(--ink)' : 'none' }} onClick={() => grade('hard')}>Hard</button>
+                <button className="btn" style={{ background: 'var(--strong)', color: '#16261a', outline: suggested === 'easy' ? '2px solid var(--ink)' : 'none' }} onClick={() => grade('easy')}>Easy</button>
+              </div>
+            </>
+          )}
 
           <div className="row" style={{ justifyContent: 'center', gap: 20, marginTop: 22 }}>
             <button className="muted btn-sm" onClick={() => setDrillOpen(true)} style={{ textDecoration: 'underline' }}>

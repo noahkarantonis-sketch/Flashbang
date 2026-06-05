@@ -1,0 +1,6 @@
+# Cloudflare Pages headers.
+# Allow the desktop app to fetch the update manifest cross-origin
+# (otherwise checkForUpdate() is CORS-blocked and the update banner never fires).
+/version.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: no-store

@@ -159,9 +159,9 @@ export function Settings() {
 
         <div className="row">
           <div className="stack">
-            <span>Auto-advance typed answers</span>
+            <span>Auto-grade typed answers</span>
             <span className="muted" style={{ fontSize: 13 }}>
-              After grading a typed answer, move on automatically using the suggested score.
+              Skip the self-rating step — accept the AI's grade and move on with one tap. Feedback still shows.
             </span>
           </div>
           <div className="btn-row">
