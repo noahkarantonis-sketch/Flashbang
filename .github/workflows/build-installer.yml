@@ -10,6 +10,11 @@ on:
     tags:
       - "v*"
 
+# The release step needs write access to create/attach to a Release.
+# Repo default is often read-only, which makes action-gh-release 403.
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
