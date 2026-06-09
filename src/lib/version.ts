@@ -8,13 +8,13 @@
 // To ship an update: bump APP_VERSION here AND package.json, rebuild, then
 // edit landing/version.json to the new version + (optional) notes, and redeploy.
 
-export const APP_VERSION = '2.2.0'
+export const APP_VERSION = '2.3.0'
 
 // Friendly version shown in the UI — drops a trailing ".0" so 2.0.0 reads "2.0".
 export const DISPLAY_VERSION = APP_VERSION.replace(/\.0$/, '')
 
 const VERSION_URL = 'https://flashbang-bco.pages.dev/version.json'
-const DOWNLOAD_URL = 'https://github.com/noahkarantonis-sketch/Flashbang/releases/download/v2.2/Flashbang-Setup-2.2.0.exe'
+const DOWNLOAD_URL = 'https://github.com/noahkarantonis-sketch/Flashbang/releases/download/v2.3/Flashbang-Setup-2.3.0.exe'
 
 export interface UpdateInfo {
   version: string

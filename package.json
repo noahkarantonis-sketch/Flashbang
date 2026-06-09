@@ -1,6 +1,6 @@
 {
   "name": "flashbang",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "AI study OS — scan notes, get flashcards, study by priority. Anki, but it knows where you're weak.",
   "main": "out/main/index.js",
   "author": "Noah Karantonis",
