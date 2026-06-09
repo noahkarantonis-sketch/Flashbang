@@ -46,6 +46,16 @@
   --strong-bg: #25322a;
 }
 
+/* Accent palettes — one accent, chosen by the user, staying within the
+   Ink & Paper restraint. Declared after the theme blocks so they win, and
+   per-theme so each reads right on bone vs ink. */
+[data-theme='light'][data-accent='sage']   { --accent: #5f7d57; --accent-ink: #ffffff; }
+[data-theme='dark'][data-accent='sage']    { --accent: #8faa84; --accent-ink: #16231a; }
+[data-theme='light'][data-accent='terracotta'] { --accent: #b5654a; --accent-ink: #ffffff; }
+[data-theme='dark'][data-accent='terracotta']  { --accent: #cf8466; --accent-ink: #2a1812; }
+[data-theme='light'][data-accent='plum']   { --accent: #6b4a6e; --accent-ink: #ffffff; }
+[data-theme='dark'][data-accent='plum']    { --accent: #a784ab; --accent-ink: #221624; }
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -134,6 +144,18 @@ h3,
 }
 .card + .card {
   margin-top: 14px;
+}
+/* Weak-spot drill call-out: terracotta edge + lift on hover. */
+.drill-card {
+  border-left: 3px solid var(--weak);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.drill-card:hover {
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-1px);
+}
+.scope-btn {
+  transition: border-color 0.12s ease, background 0.12s ease;
 }
 
 /* Buttons --------------------------------------------------- */
@@ -430,3 +452,39 @@ input[type='range']::-webkit-slider-thumb {
   line-height: 1;
 }
 .update-x:hover { opacity: 1; }
+
+/* ============================================================
+   REFINED interface — opt-in via data-ui='refined' (the default).
+   Classic markup is untouched under data-ui='classic'. A more
+   editorial Ink & Paper: serif display headings, more air,
+   softer cards. Density tunes the spacing scale.
+   ============================================================ */
+[data-ui='refined'] .greeting,
+[data-ui='refined'] .page-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+[data-ui='refined'] .greeting { font-size: 42px; line-height: 1.04; margin-bottom: 6px; }
+[data-ui='refined'] .page-title { font-size: 38px; margin-bottom: 28px; }
+[data-ui='refined'] .label { letter-spacing: 2px; margin: 34px 0 14px; }
+[data-ui='refined'] .screen { padding: 8px 44px 48px; }
+[data-ui='refined'] .card {
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 12px 32px rgba(0, 0, 0, 0.06);
+}
+[data-theme='dark'][data-ui='refined'] .card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 16px 40px rgba(0, 0, 0, 0.34);
+}
+[data-ui='refined'] .card + .card { margin-top: 16px; }
+[data-ui='refined'] .btn { border-radius: 13px; padding: 13px 18px; letter-spacing: 0.2px; }
+[data-ui='refined'] .pill { letter-spacing: 0.5px; }
+
+/* Density --------------------------------------------------- */
+[data-density='compact'] .card { padding: 16px; }
+[data-density='compact'] .card + .card { margin-top: 10px; }
+[data-density='compact'] .label { margin: 20px 0 8px; }
+[data-density='compact'] .screen { padding: 6px 28px 34px; }
+[data-density='compact'] .greeting { font-size: 30px; }
+[data-density='compact'] .page-title { font-size: 26px; margin-bottom: 18px; }

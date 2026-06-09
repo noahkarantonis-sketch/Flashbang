@@ -11,12 +11,31 @@ import { SunIcon, MoonIcon, SuspendIcon } from '../components/Icons'
 // Flip to true once live Stripe is approved to re-enable real checkout.
 const PRO_LIVE = true
 
+// Accent swatches mirror the palettes defined in styles.css.
+const ACCENTS = [
+  { key: 'default', label: 'Ink blue', swatch: '#3a4d70' },
+  { key: 'sage', label: 'Sage', swatch: '#6f9165' },
+  { key: 'terracotta', label: 'Terracotta', swatch: '#c1735a' },
+  { key: 'plum', label: 'Plum', swatch: '#7d5a80' }
+]
+
+const GOAL_OPTIONS = [
+  { v: 0, label: 'Off' },
+  { v: 15, label: '15' },
+  { v: 30, label: '30' },
+  { v: 50, label: '50' }
+]
+
 export function Settings() {
   const {
     theme, setTheme,
     userName, setUserName,
     sessionLimit, setSessionLimit,
     autoAdvance, setAutoAdvance,
+    accent, setAccent,
+    dailyGoal, setDailyGoal,
+    defaultFormat, setDefaultFormat,
+    density, setDensity,
     cards, suspendCard, deleteCard, restoreAllArchived, deleteAllArchived
   } = useStore()
 
@@ -132,6 +151,59 @@ export function Settings() {
             </button>
           </div>
         </div>
+
+        <div className="divider" />
+
+        <div className="row">
+          <div className="stack">
+            <span>Accent colour</span>
+            <span className="muted" style={{ fontSize: 13 }}>
+              The single accent used across the app.
+            </span>
+          </div>
+          <div className="btn-row">
+            {ACCENTS.map((a) => (
+              <button
+                key={a.key}
+                onClick={() => setAccent(a.key)}
+                title={a.label}
+                aria-label={a.label}
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: '50%',
+                  background: a.swatch,
+                  cursor: 'pointer',
+                  border: accent === a.key ? '2px solid var(--ink)' : '2px solid var(--hairline)',
+                  outline: 'none'
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ---------- Interface ---------- */}
+      <div className="label">Interface</div>
+      <div className="card">
+        <div className="row">
+          <div className="stack">
+            <span>Density</span>
+            <span className="muted" style={{ fontSize: 13 }}>
+              Comfortable gives more breathing room; compact fits more on screen.
+            </span>
+          </div>
+          <div className="btn-row">
+            <button
+              className={'btn btn-sm ' + (density === 'comfortable' ? '' : 'btn-ghost')}
+              onClick={() => setDensity('comfortable')}
+            >Comfortable</button>
+            <button
+              className={'btn btn-sm ' + (density === 'compact' ? '' : 'btn-ghost')}
+              onClick={() => setDensity('compact')}
+            >Compact</button>
+          </div>
+        </div>
       </div>
 
       {/* ---------- Studying ---------- */}
@@ -153,6 +225,49 @@ export function Settings() {
               <option key={o.v} value={o.v}>{o.label}</option>
             ))}
           </select>
+        </div>
+
+        <div className="divider" />
+
+        <div className="row">
+          <div className="stack">
+            <span>Daily review goal</span>
+            <span className="muted" style={{ fontSize: 13 }}>
+              Shows a progress ring on Home. Builds the daily habit.
+            </span>
+          </div>
+          <select
+            value={dailyGoal}
+            onChange={(e) => setDailyGoal(Number(e.target.value))}
+            style={{ width: 'auto', minWidth: 110 }}
+          >
+            {GOAL_OPTIONS.map((o) => (
+              <option key={o.v} value={o.v}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="divider" />
+
+        <div className="row">
+          <div className="stack">
+            <span>New card format</span>
+            <span className="muted" style={{ fontSize: 13 }}>
+              How freshly generated cards behave — let the AI choose, or force one.
+            </span>
+          </div>
+          <div className="btn-row">
+            {(['auto', 'flip', 'typed'] as const).map((f) => (
+              <button
+                key={f}
+                className={'btn btn-sm ' + (defaultFormat === f ? '' : 'btn-ghost')}
+                onClick={() => setDefaultFormat(f)}
+                style={{ textTransform: 'capitalize' }}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="divider" />

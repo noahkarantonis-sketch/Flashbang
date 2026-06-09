@@ -67,6 +67,46 @@ export function buildQueue(
     .map((x) => x.card)
 }
 
+// Weak topics across the deck, weakest first. A topic is "weak" if its live
+// confidence is below `threshold` (default 50 = the 'weak' band).
+export function weakTopics(
+  cards: Card[],
+  tests: TestResult[],
+  threshold = 50,
+  now = Date.now()
+): { topic: string; score: number }[] {
+  const topics = [...new Set(cards.filter((c) => !c.suspended).map((c) => c.topic))]
+  return topics
+    .map((t) => ({ topic: t, score: topicConfidence(t, cards, tests, now) }))
+    .filter((x) => x.score != null && (x.score as number) < threshold)
+    .sort((a, b) => (a.score as number) - (b.score as number)) as {
+    topic: string
+    score: number
+  }[]
+}
+
+// Weak-spot drill queue: cards from your weakest topics, hardest/most-overdue
+// first — and unlike the normal queue this INCLUDES not-yet-due cards, because
+// the whole point of a drill is to hammer weak areas now, not wait for them.
+export function buildWeakDrill(
+  cards: Card[],
+  subjects: Subject[],
+  tests: TestResult[],
+  opts?: { limit?: number; threshold?: number },
+  now = Date.now()
+): Card[] {
+  const threshold = opts?.threshold ?? 50
+  const weak = new Set(weakTopics(cards, tests, threshold, now).map((w) => w.topic))
+  const subjById = new Map(subjects.map((s) => [s.id, s]))
+  let q = cards
+    .filter((c) => !c.suspended && weak.has(c.topic))
+    .map((c) => ({ card: c, p: cardPriority(c, subjById.get(c.subjectId), cards, tests, now) }))
+    .sort((a, b) => b.p - a.p)
+    .map((x) => x.card)
+  if (opts?.limit && opts.limit > 0) q = q.slice(0, opts.limit)
+  return q
+}
+
 // Subject readiness % for the Home "next exam" card: mean topic confidence
 // across the subject's cards, weighted by how many cards each topic has.
 export function subjectReadiness(

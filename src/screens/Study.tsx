@@ -1,11 +1,13 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useStore } from '../store'
-import { buildQueue } from '../lib/priority'
+import { buildQueue, buildWeakDrill } from '../lib/priority'
+import { topicConfidence } from '../lib/confidence'
+import { bandClass } from '../lib/ui'
 import type { Card, Grade } from '../types'
-import { HintIcon, SuspendIcon, ChevronLeft } from '../components/Icons'
+import { HintIcon, SuspendIcon, ChevronLeft, TargetIcon } from '../components/Icons'
 import { ai, type AnswerGrade, type GeneratedCard } from '../lib/ai'
 import { Markdown } from '../components/Markdown'
-import type { Tab } from '../App'
+import type { Go } from '../App'
 
 // Turn a card's history + topic test results into a short phrase the hint
 // model can use to tailor itself ("missed on Test 2", "you keep grading hard").
@@ -44,20 +46,27 @@ const VERDICT_COLOR: Record<AnswerGrade['verdict'], string> = {
 
 export function Study({
   topic,
+  weak = false,
   go
 }: {
   topic: string | null
-  go: (t: Tab, topic?: string | null) => void
+  weak?: boolean
+  go: Go
 }) {
   const { subjects, cards, tests, gradeCard, suspendCard, sessionLimit, autoAdvance } = useStore()
 
   // Build the queue ONCE on entry so grading doesn't reshuffle mid-session.
   const initialQueue = useMemo(() => {
-    let q = buildQueue(cards, subjects, tests)
-    if (topic) q = q.filter((c) => c.topic === topic)
-    let ids = q.map((c) => c.id)
-    if (sessionLimit > 0) ids = ids.slice(0, sessionLimit)
-    return ids
+    let q: Card[]
+    if (weak) {
+      // Weak-spot drill: weakest topics, includes not-yet-due cards.
+      q = buildWeakDrill(cards, subjects, tests, { limit: sessionLimit > 0 ? sessionLimit : 20 })
+    } else {
+      q = buildQueue(cards, subjects, tests)
+      if (topic) q = q.filter((c) => c.topic === topic)
+      if (sessionLimit > 0) q = q.slice(0, sessionLimit)
+    }
+    return q.map((c) => c.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -69,6 +78,9 @@ export function Study({
   const [explanation, setExplanation] = useState('')
   const [explLoading, setExplLoading] = useState(false)
   const [done, setDone] = useState(0)
+  const [results, setResults] = useState<{ grade: Grade; question: string; topic: string }[]>([])
+  // Weak-spot drill shows a focused intro before the first card.
+  const [drillReady, setDrillReady] = useState(!weak)
 
   // typed-answer state
   const [typed, setTyped] = useState('')
@@ -92,28 +104,150 @@ export function Study({
     setDrillOpen(false)
   }, [idx])
 
+  // Keyboard shortcuts: Space/Enter reveals a flip card; 1/2/3 grade once
+  // revealed; Enter accepts the suggested grade in auto-grade mode. Ignored
+  // while typing in a textarea/input so it never hijacks answer entry.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!card) return
+      const el = e.target as HTMLElement | null
+      const typing = !!el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT')
+      if (!revealed) {
+        if (format === 'flip' && !typing && (e.key === ' ' || e.key === 'Enter')) {
+          e.preventDefault()
+          setRevealed(true)
+        }
+        return
+      }
+      if (typing) return
+      const sug = answerGrade ? VERDICT_GRADE[answerGrade.verdict] : null
+      if (e.key === '1') { e.preventDefault(); grade('forgot') }
+      else if (e.key === '2') { e.preventDefault(); grade('hard') }
+      else if (e.key === '3') { e.preventDefault(); grade('easy') }
+      else if (e.key === 'Enter' && autoAdvance && sug) { e.preventDefault(); grade(sug) }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed, format, idx, autoAdvance, answerGrade])
+
   if (initialQueue.length === 0) {
     return (
       <div className="center-col">
-        <h2 className="serif" style={{ fontSize: 26 }}>Nothing due</h2>
+        <h2 className="serif" style={{ fontSize: 26 }}>
+          {weak ? 'No weak spots' : 'Nothing due'}
+        </h2>
         <p className="muted">
-          {topic ? `No cards ready in ${topic}.` : 'Your queue is empty. Add notes to make cards.'}
+          {weak
+            ? 'Nothing under 50% confidence right now — your weak topics are in good shape.'
+            : topic
+              ? `No cards ready in ${topic}.`
+              : 'Your queue is empty. Add notes to make cards.'}
         </p>
         <button className="btn btn-sm" onClick={() => go('home')}>Back home</button>
       </div>
     )
   }
 
-  if (idx >= initialQueue.length || !card) {
+  if (weak && !drillReady) {
+    const inQueue = initialQueue.map((id) => cards.find((c) => c.id === id)).filter(Boolean) as Card[]
+    const topics = [...new Set(inQueue.map((c) => c.topic))]
+      .map((t) => ({ topic: t, score: topicConfidence(t, cards, tests) }))
+      .sort((a, b) => (a.score ?? 50) - (b.score ?? 50))
     return (
-      <div className="center-col fade-in">
-        <h1 className="greeting">Session done</h1>
-        <p className="muted">
-          {done} {done === 1 ? 'card' : 'cards'} reviewed. Your confidence scores just updated.
-        </p>
-        <div className="btn-row">
-          <button className="btn btn-sm btn-ghost" onClick={() => go('graph')}>See the graph</button>
+      <div className="fade-in">
+        <div className="row" style={{ marginBottom: 14 }}>
+          <button className="muted" onClick={() => go('home')}><ChevronLeft size={18} /></button>
+          <span className="pill" style={{ color: 'var(--weak)', display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+            <TargetIcon size={14} /> Weak-spot drill
+          </span>
+          <span />
+        </div>
+        <div className="center-col" style={{ paddingTop: 8 }}>
+          <span style={{ color: 'var(--weak)' }}><TargetIcon size={40} /></span>
+          <h1 className="greeting" style={{ marginTop: 10 }}>Drill your weak spots</h1>
+          <p className="muted">
+            {initialQueue.length} cards from your {topics.length} weakest{' '}
+            {topics.length === 1 ? 'topic' : 'topics'} — hardest first, due or not.
+          </p>
+        </div>
+        <div className="label">Targeting</div>
+        <div className="card">
+          {topics.map((t, i) => (
+            <div key={t.topic} className="row" style={{ marginTop: i === 0 ? 0 : 12 }}>
+              <span>{t.topic}</span>
+              {t.score != null && (
+                <span className={bandClass(t.score)} style={{ fontWeight: 600 }}>{t.score}%</span>
+              )}
+            </div>
+          ))}
+        </div>
+        <button
+          className="btn"
+          style={{ marginTop: 18, background: 'var(--weak)', color: '#fff' }}
+          onClick={() => setDrillReady(true)}
+        >
+          Begin drill
+        </button>
+      </div>
+    )
+  }
+
+  if (idx >= initialQueue.length || !card) {
+    const counts = {
+      forgot: results.filter((r) => r.grade === 'forgot').length,
+      hard: results.filter((r) => r.grade === 'hard').length,
+      easy: results.filter((r) => r.grade === 'easy').length
+    }
+    const missed = results.filter((r) => r.grade !== 'easy')
+    return (
+      <div className="fade-in">
+        <div className="center-col" style={{ paddingTop: 8 }}>
+          <h1 className="greeting">Session done</h1>
+          <p className="muted">
+            {done} {done === 1 ? 'card' : 'cards'} reviewed · confidence updated
+          </p>
+        </div>
+
+        {done > 0 && (
+          <div className="card">
+            <div className="row" style={{ textAlign: 'center' }}>
+              <SummaryStat n={counts.easy} label="Easy" color="var(--strong)" />
+              <SummaryStat n={counts.hard} label="Hard" color="var(--mid)" />
+              <SummaryStat n={counts.forgot} label="Forgot" color="var(--weak)" />
+            </div>
+          </div>
+        )}
+
+        {missed.length > 0 && (
+          <>
+            <div className="label">Worth another look</div>
+            <div className="card">
+              {missed.slice(0, 8).map((m, i) => (
+                <div key={i} className="row" style={{ alignItems: 'flex-start', marginTop: i === 0 ? 0 : 12, gap: 12 }}>
+                  <span style={{ flex: 1, fontSize: 15 }}>{m.question}</span>
+                  <span
+                    className={m.grade === 'forgot' ? 'c-weak' : 'c-mid'}
+                    style={{ fontSize: 12, fontWeight: 600, flexShrink: 0 }}
+                  >
+                    {m.grade === 'forgot' ? 'Forgot' : 'Hard'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="btn-row" style={{ marginTop: 18 }}>
+          <button className="btn btn-sm btn-ghost" onClick={() => go('study', null, { weak: true })}>
+            Drill weak spots
+          </button>
           <button className="btn btn-sm" onClick={() => go('home')}>Home</button>
+        </div>
+        <div style={{ textAlign: 'center', marginTop: 14 }}>
+          <button className="muted btn-sm" onClick={() => go('graph')} style={{ textDecoration: 'underline' }}>
+            See the graph
+          </button>
         </div>
       </div>
     )
@@ -163,6 +297,7 @@ export function Study({
 
   function grade(g: Grade) {
     gradeCard(card!.id, g, usedHint)
+    setResults((r) => [...r, { grade: g, question: card!.question, topic: card!.topic }])
     setDone((d) => d + 1)
     setIdx((i) => i + 1)
   }
@@ -194,13 +329,22 @@ export function Study({
     <div className="fade-in">
       <div className="row" style={{ marginBottom: 14 }}>
         <button className="muted" onClick={() => go('home')}><ChevronLeft size={18} /></button>
-        <span className="pill">{card.topic}</span>
+        {weak ? (
+          <span className="pill" style={{ color: 'var(--weak)', display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+            <TargetIcon size={13} /> Drill · {card.topic}
+          </span>
+        ) : (
+          <span className="pill">{card.topic}</span>
+        )}
         <span className="muted" style={{ fontSize: 14 }}>
           {idx + 1} / {initialQueue.length}
         </span>
       </div>
       <div className="bar" style={{ marginBottom: 36 }}>
-        <span className="bar-strong" style={{ width: `${progress}%` }} />
+        <span
+          className={weak ? '' : 'bar-strong'}
+          style={{ width: `${progress}%`, background: weak ? 'var(--weak)' : undefined }}
+        />
       </div>
 
       <div style={{ minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -334,6 +478,15 @@ export function Study({
           onClose={() => setDrillOpen(false)}
         />
       )}
+    </div>
+  )
+}
+
+function SummaryStat({ n, label, color }: { n: number; label: string; color: string }) {
+  return (
+    <div className="stack" style={{ flex: 1, alignItems: 'center', gap: 2 }}>
+      <span style={{ fontSize: 28, fontWeight: 700, color }}>{n}</span>
+      <span className="muted" style={{ fontSize: 13 }}>{label}</span>
     </div>
   )
 }

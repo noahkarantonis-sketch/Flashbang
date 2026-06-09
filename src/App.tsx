@@ -11,6 +11,8 @@ import { Add } from './screens/Add'
 import { Study } from './screens/Study'
 import { Graph } from './screens/Graph'
 import { Settings } from './screens/Settings'
+import { Test } from './screens/Test'
+import { Stats } from './screens/Stats'
 import { Logo } from './components/Logo'
 import {
   HomeIcon,
@@ -20,13 +22,20 @@ import {
   GraphIcon
 } from './components/Icons'
 
-export type Tab = 'home' | 'library' | 'add' | 'study' | 'graph' | 'settings'
+export type Tab = 'home' | 'library' | 'add' | 'study' | 'graph' | 'settings' | 'test' | 'stats'
+
+// Shared navigation signature. `weak` starts a weak-spot drill session.
+export type Go = (t: Tab, topic?: string | null, opts?: { weak?: boolean }) => void
 
 export function App() {
   const theme = useStore((s) => s.theme)
+  const accent = useStore((s) => s.accent)
+  const uiStyle = useStore((s) => s.uiStyle)
+  const density = useStore((s) => s.density)
   const onboarded = useStore((s) => s.onboarded)
   const [tab, setTab] = useState<Tab>('home')
   const [studyTopic, setStudyTopic] = useState<string | null>(null)
+  const [studyWeak, setStudyWeak] = useState(false)
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [update, setUpdate] = useState<UpdateInfo | null>(null)
   const [updateDismissed, setUpdateDismissed] = useState(false)
@@ -34,6 +43,15 @@ export function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-accent', accent)
+  }, [accent])
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-ui', uiStyle)
+    document.documentElement.setAttribute('data-density', density)
+  }, [uiStyle, density])
 
   useEffect(() => {
     checkForUpdate().then(setUpdate)
@@ -49,8 +67,9 @@ export function App() {
     return () => sub.subscription.unsubscribe()
   }, [])
 
-  const go = (t: Tab, topic: string | null = null) => {
+  const go: Go = (t, topic = null, opts) => {
     setStudyTopic(topic)
+    setStudyWeak(!!opts?.weak)
     setTab(t)
   }
 
@@ -127,9 +146,11 @@ export function App() {
           {tab === 'home' && <Home go={go} />}
           {tab === 'library' && <Library go={go} />}
           {tab === 'add' && <Add go={go} />}
-          {tab === 'study' && <Study topic={studyTopic} go={go} />}
+          {tab === 'study' && <Study topic={studyTopic} weak={studyWeak} go={go} />}
           {tab === 'graph' && <Graph go={go} />}
           {tab === 'settings' && <Settings />}
+          {tab === 'test' && <Test go={go} />}
+          {tab === 'stats' && <Stats go={go} />}
         </div>
       </div>
 
@@ -140,7 +161,18 @@ export function App() {
         <button className={tab === 'library' ? 'active' : ''} onClick={() => go('library')}>
           <DocsIcon /> Library
         </button>
-        <button className="add" onClick={() => go('add')}>
+        <button
+          className="add"
+          onClick={() => {
+            // Always land on the scan/paste choose screen — unless there's an
+            // in-flight generation or unsaved generated cards worth preserving.
+            const st = useStore.getState()
+            if (st.addDraft.phase !== 'loading' && st.addDraft.phase !== 'review') {
+              st.patchAddDraft({ phase: 'choose' })
+            }
+            go('add')
+          }}
+        >
           <div className="add-circle">
             <PlusIcon size={24} />
           </div>

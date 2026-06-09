@@ -62,7 +62,7 @@ export interface StudyDoc {
   id: string
   subjectId: string
   title: string
-  kind: 'scan' | 'upload' | 'paste'
+  kind: 'scan' | 'upload' | 'paste' | 'exam' | 'bank'
   createdAt: number
   cardCount: number
 }

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../store'
-import { topicConfidence } from '../lib/confidence'
+import { topicConfidence, band } from '../lib/confidence'
 import { bandClass, barClass, toDateInput, fromDateInput, formatExamDate, daysUntil } from '../lib/ui'
 import { ChevronLeft, ChevronRight, PinIcon, SuspendIcon, TrashIcon, EditIcon } from '../components/Icons'
 import type { Tab } from '../App'
@@ -8,6 +8,26 @@ import type { Tab } from '../App'
 export function Library({ go }: { go: (t: Tab, topic?: string | null) => void }) {
   const { subjects, cards, docs } = useStore()
   const [selected, setSelected] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [fSubject, setFSubject] = useState('') // '' = all subjects
+  const [fBand, setFBand] = useState<'all' | 'weak' | 'mid' | 'strong'>('all')
+
+  const q = query.trim().toLowerCase()
+  const searching = q.length > 0 || fSubject !== '' || fBand !== 'all'
+  const results = useMemo(() => {
+    if (!searching) return []
+    return cards
+      .filter((c) => {
+        if (fSubject && c.subjectId !== fSubject) return false
+        if (fBand !== 'all') {
+          const s = topicConfidence(c.topic, cards, [])
+          if (s == null || band(s) !== fBand) return false
+        }
+        if (q && !`${c.question} ${c.answer} ${c.topic}`.toLowerCase().includes(q)) return false
+        return true
+      })
+      .slice(0, 80)
+  }, [cards, q, fSubject, fBand, searching])
 
   if (selected) {
     const subject = subjects.find((s) => s.id === selected)
@@ -21,34 +41,81 @@ export function Library({ go }: { go: (t: Tab, topic?: string | null) => void })
   return (
     <>
       <h1 className="page-title">Library</h1>
-      {subjects.length === 0 && (
-        <p className="muted">No subjects yet. Add notes from the + tab to get started.</p>
-      )}
-      {subjects.map((s) => {
-        const sCards = cards.filter((c) => c.subjectId === s.id && !c.suspended)
-        const sDocs = docs.filter((d) => d.subjectId === s.id)
-        return (
-          <div
-            key={s.id}
-            className="card"
-            style={{ cursor: 'pointer' }}
-            onClick={() => setSelected(s.id)}
-          >
-            <div className="row">
-              <div className="stack">
-                <h2 style={{ fontSize: 22 }}>{s.name}</h2>
-                <span className="muted" style={{ fontSize: 14 }}>
-                  {sCards.length} cards · {sDocs.length} docs
-                  {s.examDate && s.examDate > Date.now()
-                    ? ` · exam in ${Math.max(0, daysUntil(s.examDate))}d`
-                    : ''}
-                </span>
-              </div>
-              <ChevronRight className="muted" />
+
+      {cards.length > 0 && (
+        <>
+          <input
+            placeholder="Search all cards…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{ marginBottom: 10 }}
+          />
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+            <select value={fSubject} onChange={(e) => setFSubject(e.target.value)} style={{ width: 'auto', flex: '1 1 auto' }}>
+              <option value="">All subjects</option>
+              {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            <div className="btn-row">
+              {(['all', 'weak', 'mid', 'strong'] as const).map((b) => (
+                <button
+                  key={b}
+                  className={'btn btn-sm ' + (fBand === b ? '' : 'btn-ghost')}
+                  onClick={() => setFBand(b)}
+                  style={{ textTransform: 'capitalize', padding: '6px 10px' }}
+                >
+                  {b}
+                </button>
+              ))}
             </div>
           </div>
-        )
-      })}
+        </>
+      )}
+
+      {searching ? (
+        <>
+          <div className="label">
+            {results.length} {results.length === 1 ? 'match' : 'matches'}
+          </div>
+          <div className="card">
+            {results.length === 0 ? (
+              <p className="muted" style={{ fontSize: 14 }}>No cards match.</p>
+            ) : (
+              results.map((c) => <CardRow key={c.id} cardId={c.id} showTopic />)
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          {subjects.length === 0 && (
+            <p className="muted">No subjects yet. Add notes from the + tab to get started.</p>
+          )}
+          {subjects.map((s) => {
+            const sCards = cards.filter((c) => c.subjectId === s.id && !c.suspended)
+            const sDocs = docs.filter((d) => d.subjectId === s.id)
+            return (
+              <div
+                key={s.id}
+                className="card"
+                style={{ cursor: 'pointer' }}
+                onClick={() => setSelected(s.id)}
+              >
+                <div className="row">
+                  <div className="stack">
+                    <h2 style={{ fontSize: 22 }}>{s.name}</h2>
+                    <span className="muted" style={{ fontSize: 14 }}>
+                      {sCards.length} cards · {sDocs.length} docs
+                      {s.examDate && s.examDate > Date.now()
+                        ? ` · exam in ${Math.max(0, daysUntil(s.examDate))}d`
+                        : ''}
+                    </span>
+                  </div>
+                  <ChevronRight className="muted" />
+                </div>
+              </div>
+            )
+          })}
+        </>
+      )}
     </>
   )
 }
@@ -204,7 +271,7 @@ function SubjectView({
   )
 }
 
-function CardRow({ cardId }: { cardId: string }) {
+function CardRow({ cardId, showTopic = false }: { cardId: string; showTopic?: boolean }) {
   const store = useStore()
   const card = store.cards.find((c) => c.id === cardId)
   const [editing, setEditing] = useState(false)
@@ -220,6 +287,7 @@ function CardRow({ cardId }: { cardId: string }) {
       ) : (
         <div className="row" style={{ alignItems: 'flex-start' }}>
           <div className="stack" style={{ flex: 1, opacity: card.suspended ? 0.45 : 1 }}>
+            {showTopic && <span className="muted" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4 }}>{card.topic}</span>}
             <span style={{ fontWeight: 500 }}>{card.question}</span>
             <span className="muted" style={{ fontSize: 13 }}>{card.answer}</span>
           </div>

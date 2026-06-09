@@ -3,8 +3,8 @@ import { useStore } from '../store'
 import { buildQueue, subjectReadiness } from '../lib/priority'
 import { topicConfidence } from '../lib/confidence'
 import { bandClass, barClass, daysUntil, formatExamDate } from '../lib/ui'
-import { ChevronRight, SettingsIcon } from '../components/Icons'
-import type { Tab } from '../App'
+import { ChevronRight, SettingsIcon, TargetIcon, TestIcon } from '../components/Icons'
+import type { Go } from '../App'
 
 // Time-bucketed greetings. {name} is filled in; if there's no name we fall
 // back to the plain "Good morning/afternoon/evening." line per bucket.
@@ -70,8 +70,8 @@ function pickGreeting(rawName: string) {
     .replace(/\s+([?.!])/g, '$1')
 }
 
-export function Home({ go }: { go: (t: Tab, topic?: string | null) => void }) {
-  const { subjects, cards, tests, userName } = useStore()
+export function Home({ go }: { go: Go }) {
+  const { subjects, cards, tests, userName, dailyGoal, patchAddDraft } = useStore()
 
   const data = useMemo(() => {
     const now = Date.now()
@@ -140,12 +140,26 @@ export function Home({ go }: { go: (t: Tab, topic?: string | null) => void }) {
           )
         : null
 
+    // Weak topics (confidence < 50), weakest first — drives the drill card.
+    const weak = topicScores.filter((t) => t.score < 50)
+    const hasCards = cards.some((c) => !c.suspended)
+
+    // Reviews logged so far today (for the daily-goal ring).
+    const todayStr = new Date().toDateString()
+    const reviewsToday = cards.reduce(
+      (n, c) => n + c.history.filter((h) => new Date(h.at).toDateString() === todayStr).length,
+      0
+    )
+
     return {
       queue,
       nextExam,
       readiness,
       topicScores,
       weakInQueue,
+      weak,
+      hasCards,
+      reviewsToday,
       focus,
       focusDue,
       streak,
@@ -166,7 +180,7 @@ export function Home({ go }: { go: (t: Tab, topic?: string | null) => void }) {
           style={{ padding: 6 }}
           title="Settings"
         >
-          <SettingsIcon size={22} />
+          <SettingsIcon size={27} />
         </button>
       </div>
 
@@ -227,6 +241,71 @@ export function Home({ go }: { go: (t: Tab, topic?: string | null) => void }) {
         )}
       </div>
 
+      <div className="label">Question bank</div>
+      <div
+        className="card"
+        style={{ cursor: 'pointer' }}
+        onClick={() => { patchAddDraft({ phase: 'bank' }); go('add') }}
+      >
+        <div className="row">
+          <div className="stack">
+            <div className="row" style={{ justifyContent: 'flex-start', gap: 8 }}>
+              <TestIcon size={18} className="muted" />
+              <h2 style={{ fontSize: 20 }}>Theory & practice questions</h2>
+            </div>
+            <span className="muted" style={{ fontSize: 14 }}>
+              Ready-made exam-style questions by subject — no upload needed
+            </span>
+          </div>
+          <ChevronRight className="muted" />
+        </div>
+      </div>
+
+      {data.hasCards && (
+        <>
+          <div className="label">Sharpen up</div>
+          {data.weak.length > 0 && (
+            <div
+              className="card drill-card"
+              style={{ cursor: 'pointer' }}
+              onClick={() => go('study', null, { weak: true })}
+            >
+              <div className="row">
+                <div className="stack">
+                  <div className="row" style={{ justifyContent: 'flex-start', gap: 8 }}>
+                    <TargetIcon size={18} className="c-weak" />
+                    <h2 style={{ fontSize: 20 }}>Drill weak spots</h2>
+                  </div>
+                  <span className="muted" style={{ fontSize: 14 }}>
+                    {data.weak.length} {data.weak.length === 1 ? 'topic' : 'topics'} under 50% —
+                    weakest is {data.weak[0].topic} ({data.weak[0].score}%)
+                  </span>
+                </div>
+                <ChevronRight className="c-weak" />
+              </div>
+            </div>
+          )}
+          <div
+            className="card"
+            style={{ cursor: 'pointer' }}
+            onClick={() => go('test')}
+          >
+            <div className="row">
+              <div className="stack">
+                <div className="row" style={{ justifyContent: 'flex-start', gap: 8 }}>
+                  <TestIcon size={18} className="muted" />
+                  <h2 style={{ fontSize: 20 }}>Practice test</h2>
+                </div>
+                <span className="muted" style={{ fontSize: 14 }}>
+                  Timed mock, AI-graded — logs a real score and updates confidence
+                </span>
+              </div>
+              <ChevronRight className="muted" />
+            </div>
+          </div>
+        </>
+      )}
+
       {data.focus && (
         <>
           <div className="label">Today's focus</div>
@@ -273,6 +352,20 @@ export function Home({ go }: { go: (t: Tab, topic?: string | null) => void }) {
         </>
       )}
 
+      {dailyGoal > 0 && (
+        <div className="row" style={{ marginTop: 28, justifyContent: 'center', gap: 18 }}>
+          <GoalRing done={data.reviewsToday} goal={dailyGoal} />
+          <div className="stack">
+            <span style={{ fontWeight: 600 }}>
+              {data.reviewsToday >= dailyGoal ? 'Daily goal hit' : 'Daily goal'}
+            </span>
+            <span className="muted" style={{ fontSize: 14 }}>
+              {Math.min(data.reviewsToday, dailyGoal)} / {dailyGoal} reviews today
+            </span>
+          </div>
+        </div>
+      )}
+
       {(data.streak > 0 || data.retention != null) && (
         <div className="row" style={{ marginTop: 28, justifyContent: 'center', gap: 32 }}>
           {data.streak > 0 && (
@@ -287,6 +380,52 @@ export function Home({ go }: { go: (t: Tab, topic?: string | null) => void }) {
           )}
         </div>
       )}
+
+      {data.hasCards && (
+        <>
+          <div className="label">Insights</div>
+          <div className="card" style={{ cursor: 'pointer' }} onClick={() => go('stats')}>
+            <div className="row">
+              <div className="stack">
+                <h2 style={{ fontSize: 20 }}>Your trends</h2>
+                <span className="muted" style={{ fontSize: 14 }}>
+                  Reviews over time, streak, retention, confidence by subject
+                </span>
+              </div>
+              <ChevronRight className="muted" />
+            </div>
+          </div>
+        </>
+      )}
     </>
+  )
+}
+
+// Circular progress ring for the daily review goal.
+function GoalRing({ done, goal }: { done: number; goal: number }) {
+  const r = 22
+  const c = 2 * Math.PI * r
+  const pct = Math.max(0, Math.min(1, goal > 0 ? done / goal : 0))
+  const hit = done >= goal
+  return (
+    <svg width={56} height={56} viewBox="0 0 56 56">
+      <circle cx={28} cy={28} r={r} fill="none" stroke="var(--hairline)" strokeWidth={5} />
+      <circle
+        cx={28}
+        cy={28}
+        r={r}
+        fill="none"
+        stroke={hit ? 'var(--strong)' : 'var(--accent)'}
+        strokeWidth={5}
+        strokeLinecap="round"
+        strokeDasharray={c}
+        strokeDashoffset={c * (1 - pct)}
+        transform="rotate(-90 28 28)"
+        style={{ transition: 'stroke-dashoffset 0.4s ease' }}
+      />
+      <text x={28} y={32} textAnchor="middle" fontSize={14} fontWeight={700} fill="var(--ink)">
+        {Math.round(pct * 100)}
+      </text>
+    </svg>
   )
 }

@@ -2,8 +2,14 @@ import { useRef, useState } from 'react'
 import { useStore, type GeneratedCard } from '../store'
 import type { StudyDoc } from '../types'
 import { ai, aiErrorMessage } from '../lib/ai'
-import { CameraIcon, FileIcon, PasteIcon, ChevronLeft, EditIcon } from '../components/Icons'
+import { CameraIcon, FileIcon, PasteIcon, ChevronLeft, EditIcon, TestIcon, ChevronRight } from '../components/Icons'
+import { questionBank } from '../data/questionBank'
 import type { Tab } from '../App'
+
+// Turns raw extracted exam questions into clean, original, style-matched
+// practice cards — transformative (not verbatim reproduction of the paper).
+const EXAM_INSTRUCTION =
+  'These were extracted from a past exam paper. Rewrite them as original, self-contained practice cards in the student\'s study format: one card per distinct question or sub-part; preserve the difficulty and command word (define / explain / calculate / justify / evaluate); include the mark allocation in the question when shown (e.g. "(3 marks)"); write a concise correct model answer; and set a precise syllabus topic for each. Do not copy wording verbatim — reword into fresh equivalent questions. Use type-in format for anything beyond pure recall.'
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -20,12 +26,20 @@ function fileToBase64(file: File): Promise<string> {
 export function Add({ go }: { go: (t: Tab, topic?: string | null) => void }) {
   const { subjects, addSubject, commitGenerated, addDraft, patchAddDraft, resetAddDraft } = useStore()
   // The draft lives in the store so switching tabs mid-flow doesn't lose it.
-  const { phase, pasteText, cards, docTitle, docKind, newSubject, refineText, error } = addDraft
+  const { phase, pasteText, cards, docTitle, docKind, newSubject, refineText, error, examMode } = addDraft
   const subjectId = addDraft.subjectId || subjects[0]?.id || ''
   const [refining, setRefining] = useState(false)
   const [practiceLoading, setPracticeLoading] = useState(false)
+  const [bankBranchId, setBankBranchId] = useState<string | null>(null)
+  const [bankSubjectId, setBankSubjectId] = useState<string | null>(null)
+  const [openTopic, setOpenTopic] = useState<string | null>(null)
   const imgInput = useRef<HTMLInputElement>(null)
   const pdfInput = useRef<HTMLInputElement>(null)
+
+  // Load bank questions straight into the review flow (no AI cost — pre-written).
+  function loadBank(questions: GeneratedCard[], title: string) {
+    patchAddDraft({ cards: questions, docTitle: title, docKind: 'bank', phase: 'review', error: '' })
+  }
 
   function resolveSubjectId(): string {
     if (newSubject.trim()) {
@@ -53,18 +67,43 @@ export function Add({ go }: { go: (t: Tab, topic?: string | null) => void }) {
     }
   }
 
+  // Past-exam import: extract from the paper, then rewrite into clean, original
+  // practice cards (style-matched, not verbatim copies — safer + better drilling).
+  async function runExam(fn: () => Promise<GeneratedCard[]>, title: string) {
+    patchAddDraft({ docTitle: title, docKind: 'exam', phase: 'loading', error: '' })
+    try {
+      const raw = await fn()
+      if (!raw || raw.length === 0) {
+        patchAddDraft({ error: "Couldn't read questions from that paper. Try clearer text or a PDF.", phase: 'error' })
+        return
+      }
+      let finalCards = raw
+      try {
+        const refined = await ai.refineCards(raw, EXAM_INSTRUCTION)
+        if (refined && refined.length) finalCards = refined
+      } catch {
+        /* refine is best-effort; fall back to the raw extraction */
+      }
+      patchAddDraft({ cards: finalCards, phase: 'review' })
+    } catch (e: any) {
+      patchAddDraft({ error: aiErrorMessage(e), phase: 'error' })
+    }
+  }
+
   async function onImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     const b64 = await fileToBase64(file)
-    run(() => ai.cardsFromImage(b64, file.type), file.name, 'scan')
+    if (examMode) runExam(() => ai.cardsFromImage(b64, file.type), file.name)
+    else run(() => ai.cardsFromImage(b64, file.type), file.name, 'scan')
   }
 
   async function onPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     const b64 = await fileToBase64(file)
-    run(() => ai.cardsFromPdf(b64), file.name, 'upload')
+    if (examMode) runExam(() => ai.cardsFromPdf(b64), file.name)
+    else run(() => ai.cardsFromPdf(b64), file.name, 'upload')
   }
 
   function onPaste() {
@@ -73,7 +112,8 @@ export function Add({ go }: { go: (t: Tab, topic?: string | null) => void }) {
       return
     }
     const snippet = pasteText.trim().slice(0, 40)
-    run(() => ai.cardsFromText(pasteText.trim()), snippet + '…', 'paste')
+    if (examMode) runExam(() => ai.cardsFromText(pasteText.trim()), snippet + '…')
+    else run(() => ai.cardsFromText(pasteText.trim()), snippet + '…', 'paste')
   }
 
   function commit() {
@@ -249,25 +289,156 @@ export function Add({ go }: { go: (t: Tab, topic?: string | null) => void }) {
     )
   }
 
+  if (phase === 'bank') {
+    const branch = questionBank.find((b) => b.id === bankBranchId) || null
+
+    // Level 1 — choose Theory or Practice.
+    if (!branch) {
+      return (
+        <>
+          <button className="muted" onClick={() => patchAddDraft({ phase: 'choose' })} style={{ marginBottom: 8 }}>
+            <ChevronLeft size={18} />
+          </button>
+          <h1 className="page-title">Question bank</h1>
+          <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
+            Ready-made questions. Start with the rules, then drill exam-style problems.
+          </p>
+          {questionBank.map((b) => (
+            <div key={b.id} className="card" style={{ cursor: 'pointer' }} onClick={() => { setBankBranchId(b.id); setBankSubjectId(null) }}>
+              <div className="row">
+                <div className="stack">
+                  <h2 style={{ fontSize: 22 }}>{b.name}</h2>
+                  <span className="muted" style={{ fontSize: 14 }}>{b.blurb}</span>
+                </div>
+                <ChevronRight className="muted" />
+              </div>
+            </div>
+          ))}
+        </>
+      )
+    }
+
+    const subject = branch.subjects.find((s) => s.id === bankSubjectId) || null
+
+    // Level 2 — choose a subject within the branch.
+    if (!subject) {
+      return (
+        <>
+          <button className="muted" onClick={() => setBankBranchId(null)} style={{ marginBottom: 8 }}>
+            <ChevronLeft size={18} />
+          </button>
+          <h1 className="page-title">{branch.name}</h1>
+          {branch.subjects.map((s) => (
+            <div key={s.id} className="card" style={{ cursor: 'pointer' }} onClick={() => { setBankSubjectId(s.id); setOpenTopic(null) }}>
+              <div className="row">
+                <div className="stack">
+                  <h2 style={{ fontSize: 20 }}>{s.name}</h2>
+                  <span className="muted" style={{ fontSize: 14 }}>{s.level} · {s.questions.length} questions</span>
+                </div>
+                <ChevronRight className="muted" />
+              </div>
+            </div>
+          ))}
+        </>
+      )
+    }
+
+    // Level 3 — topics with preview + add.
+    const topics = [...new Set(subject.questions.map((q) => q.topic))].map((t) => ({
+      topic: t,
+      questions: subject.questions.filter((q) => q.topic === t)
+    }))
+
+    return (
+      <>
+        <button className="muted" onClick={() => setBankSubjectId(null)} style={{ marginBottom: 8 }}>
+          <ChevronLeft size={18} />
+        </button>
+        <h1 className="page-title">{subject.name}</h1>
+        <span className="pill" style={{ marginBottom: 14, display: 'inline-block' }}>{branch.name}</span>
+        <button
+          className="btn"
+          style={{ marginBottom: 16, marginTop: 6, display: 'block' }}
+          onClick={() => loadBank(subject.questions, `${subject.name} · ${branch.name}`)}
+        >
+          Add all {subject.questions.length}
+        </button>
+        <div className="label">By topic — tap to preview</div>
+        {topics.map((t) => {
+          const open = openTopic === t.topic
+          return (
+            <div key={t.topic} className="card">
+              <div className="row" style={{ cursor: 'pointer' }} onClick={() => setOpenTopic(open ? null : t.topic)}>
+                <div className="stack">
+                  <span style={{ fontWeight: 600 }}>{t.topic}</span>
+                  <span className="muted" style={{ fontSize: 13 }}>{t.questions.length} questions</span>
+                </div>
+                <span style={{ display: 'inline-flex', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease' }}>
+                  <ChevronRight className="muted" />
+                </span>
+              </div>
+
+              {open && (
+                <div className="fade-in" style={{ marginTop: 12 }}>
+                  {t.questions.map((q, i) => (
+                    <div key={i} style={{ padding: '10px 0', borderTop: '1px solid var(--hairline)' }}>
+                      <div style={{ fontSize: 14, whiteSpace: 'pre-wrap' }}>{q.question}</div>
+                      <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+                        {q.format === 'typed' ? 'Type-in' : 'Flip'} · {q.topic}
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    className="btn btn-sm"
+                    style={{ marginTop: 12 }}
+                    onClick={() => loadBank(t.questions, `${subject.name} · ${t.topic}`)}
+                  >
+                    Add these {t.questions.length}
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </>
+    )
+  }
+
   if (phase === 'paste') {
     return (
       <>
+        <input ref={pdfInput} type="file" accept="application/pdf" hidden onChange={onPdf} />
         <button className="muted" onClick={() => patchAddDraft({ phase: 'choose' })} style={{ marginBottom: 8 }}>
           <ChevronLeft size={18} />
         </button>
-        <h1 className="page-title">Paste your notes</h1>
+        <h1 className="page-title">{examMode ? 'Paste a past exam' : 'Paste your notes'}</h1>
+        {examMode && (
+          <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
+            Paste the questions from a past paper (or upload the PDF). The AI rewrites them into
+            original, style-matched practice — keeping the difficulty and mark allocations.
+          </p>
+        )}
         <textarea
           autoFocus
-          placeholder="Paste notes, a passage, definitions — anything you want turned into cards."
+          placeholder={
+            examMode
+              ? 'Paste exam questions here…'
+              : 'Paste notes, a passage, definitions — anything you want turned into cards.'
+          }
           value={pasteText}
           onChange={(e) => patchAddDraft({ pasteText: e.target.value })}
           style={{ minHeight: 240 }}
         />
         {error && <p className="c-weak" style={{ marginTop: 8 }}>{error}</p>}
-        <div style={{ marginTop: 16 }}>
+        <div className="btn-row" style={{ marginTop: 16 }}>
           <button className="btn" onClick={onPaste}>
-            Make cards
+            {examMode ? 'Make practice' : 'Make cards'}
           </button>
+          {examMode && (
+            <button className="btn btn-ghost" onClick={() => pdfInput.current?.click()}>
+              Upload exam PDF
+            </button>
+          )}
         </div>
       </>
     )
@@ -307,10 +478,47 @@ export function Add({ go }: { go: (t: Tab, topic?: string | null) => void }) {
         <div
           className="card"
           style={{ flex: 1, textAlign: 'center', cursor: 'pointer' }}
-          onClick={() => patchAddDraft({ phase: 'paste' })}
+          onClick={() => patchAddDraft({ phase: 'paste', examMode: false })}
         >
           <PasteIcon size={24} className="muted" />
           <div style={{ marginTop: 8 }}>Paste text</div>
+        </div>
+      </div>
+
+      <div
+        className="card"
+        style={{ marginTop: 14, cursor: 'pointer' }}
+        onClick={() => { setBankBranchId(null); setBankSubjectId(null); setOpenTopic(null); patchAddDraft({ phase: 'bank', error: '' }) }}
+      >
+        <div className="row">
+          <div className="stack">
+            <div className="row" style={{ justifyContent: 'flex-start', gap: 8 }}>
+              <TestIcon size={20} className="muted" />
+              <h2 style={{ fontSize: 20 }}>Question bank</h2>
+            </div>
+            <p className="muted" style={{ fontSize: 14 }}>
+              Ready-made exam-style questions by subject and topic — no upload needed
+            </p>
+          </div>
+          <ChevronRight className="muted" />
+        </div>
+      </div>
+
+      <div
+        className="card drill-card"
+        style={{ marginTop: 14, cursor: 'pointer' }}
+        onClick={() => patchAddDraft({ phase: 'paste', examMode: true, error: '' })}
+      >
+        <div className="row">
+          <div className="stack">
+            <div className="row" style={{ justifyContent: 'flex-start', gap: 8 }}>
+              <TestIcon size={20} className="c-weak" />
+              <h2 style={{ fontSize: 20 }}>Past exam</h2>
+            </div>
+            <p className="muted" style={{ fontSize: 14 }}>
+              Paste or upload a past paper — AI turns it into style-matched practice
+            </p>
+          </div>
         </div>
       </div>
 

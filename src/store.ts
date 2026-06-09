@@ -19,7 +19,7 @@ export interface GeneratedCard {
 // so switching tabs mid-flow doesn't throw away typed text / generated cards.
 // NOT persisted to disk (see partialize) — it survives tab switches but resets
 // on a full app restart, so a half-finished 'loading' can never get stuck.
-export type AddPhase = 'choose' | 'paste' | 'loading' | 'review' | 'error'
+export type AddPhase = 'choose' | 'paste' | 'loading' | 'review' | 'error' | 'bank'
 export interface AddDraft {
   phase: AddPhase
   pasteText: string
@@ -30,6 +30,7 @@ export interface AddDraft {
   newSubject: string
   refineText: string
   error: string
+  examMode: boolean // import is a past exam → extract then exam-style refine
 }
 
 const emptyAddDraft: AddDraft = {
@@ -41,7 +42,8 @@ const emptyAddDraft: AddDraft = {
   subjectId: '',
   newSubject: '',
   refineText: '',
-  error: ''
+  error: '',
+  examMode: false
 }
 
 interface State {
@@ -56,6 +58,13 @@ interface State {
   // study preferences
   sessionLimit: number // max cards per study session (0 = no limit)
   autoAdvance: boolean // auto-apply the suggested grade after a typed answer
+
+  // customisation
+  accent: string // accent palette key ('default' | 'sage' | 'terracotta' | 'plum')
+  dailyGoal: number // target reviews per day (0 = off)
+  defaultFormat: 'auto' | 'flip' | 'typed' // format for newly generated cards
+  uiStyle: 'classic' | 'refined' // overall visual treatment; classic = original
+  density: 'comfortable' | 'compact' // spacing scale
 
   // in-progress Add-cards flow (survives tab switches)
   addDraft: AddDraft
@@ -95,6 +104,11 @@ interface State {
   setUserName: (name: string) => void
   setSessionLimit: (n: number) => void
   setAutoAdvance: (v: boolean) => void
+  setAccent: (a: string) => void
+  setDailyGoal: (n: number) => void
+  setDefaultFormat: (f: 'auto' | 'flip' | 'typed') => void
+  setUiStyle: (s: 'classic' | 'refined') => void
+  setDensity: (d: 'comfortable' | 'compact') => void
 }
 
 export const useStore = create<State>()(
@@ -109,6 +123,11 @@ export const useStore = create<State>()(
       userName: '',
       sessionLimit: 0,
       autoAdvance: false,
+      accent: 'default',
+      dailyGoal: 0,
+      defaultFormat: 'auto',
+      uiStyle: 'refined',
+      density: 'comfortable',
       addDraft: emptyAddDraft,
 
       addSubject: (name) => {
@@ -141,13 +160,15 @@ export const useStore = create<State>()(
       commitGenerated: (subjectId, doc, generated) => {
         const docId = uid()
         const now = Date.now()
+        const pref = get().defaultFormat
         const newCards: Card[] = generated.map((g) => ({
           id: uid(),
           question: g.question,
           answer: g.answer,
           topic: g.topic || 'General',
           type: g.type,
-          format: g.format === 'typed' ? 'typed' : 'flip',
+          format:
+            pref === 'auto' ? (g.format === 'typed' ? 'typed' : 'flip') : pref,
           subjectId,
           docId,
           createdAt: now,
@@ -210,6 +231,11 @@ export const useStore = create<State>()(
       setUserName: (name) => set({ userName: name.slice(0, 16) }),
       setSessionLimit: (sessionLimit) => set({ sessionLimit }),
       setAutoAdvance: (autoAdvance) => set({ autoAdvance }),
+      setAccent: (accent) => set({ accent }),
+      setDailyGoal: (dailyGoal) => set({ dailyGoal }),
+      setDefaultFormat: (defaultFormat) => set({ defaultFormat }),
+      setUiStyle: (uiStyle) => set({ uiStyle }),
+      setDensity: (density) => set({ density }),
 
       patchAddDraft: (patch) => set((s) => ({ addDraft: { ...s.addDraft, ...patch } })),
       resetAddDraft: () => set({ addDraft: emptyAddDraft })
