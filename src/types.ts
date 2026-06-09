@@ -8,7 +8,8 @@ export type CardType =
 // How the student answers a card.
 //   'flip'  — reveal the answer and self-grade (the original behaviour)
 //   'typed' — type an answer, the AI grades it for meaning
-export type CardFormat = 'flip' | 'typed'
+//   'mcq'   — pick from options; graded instantly (no AI). Needs `options`.
+export type CardFormat = 'flip' | 'typed' | 'mcq'
 
 export type Grade = 'forgot' | 'hard' | 'easy'
 
@@ -25,6 +26,7 @@ export interface Card {
   topic: string
   type: CardType
   format?: CardFormat // undefined = 'flip' (back-compat with older cards)
+  options?: string[] // MCQ choices (one must equal `answer`)
   subjectId: string
   docId: string | null
 

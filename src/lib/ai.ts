@@ -34,7 +34,8 @@ export interface GeneratedCard {
   answer: string
   topic: string
   type: 'definition' | 'cause-effect' | 'formula' | 'application' | 'concept'
-  format?: 'flip' | 'typed'
+  format?: 'flip' | 'typed' | 'mcq'
+  options?: string[]
 }
 
 export interface AnswerGrade {

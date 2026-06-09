@@ -16,6 +16,8 @@ interface Q {
   answer: string
   topic: string
   subjectId: string
+  format?: 'flip' | 'typed' | 'mcq'
+  options?: string[]
 }
 interface Graded extends Q {
   userAnswer: string
@@ -98,7 +100,9 @@ export function Test({ go }: { go: Go }) {
       question: c.question,
       answer: c.answer,
       topic: c.topic,
-      subjectId: c.subjectId
+      subjectId: c.subjectId,
+      format: c.format === 'mcq' && (c.options?.length ?? 0) > 1 ? 'mcq' : c.format,
+      options: c.options
     }))
     setQuestions(qs)
     answers.current = []
@@ -128,6 +132,18 @@ export function Test({ go }: { go: Go }) {
         const ua = answers.current[idx] || ''
         let verdict: AnswerGrade['verdict'] = 'incorrect'
         let feedback = 'No answer given.'
+        // MCQ is graded instantly, no AI call.
+        if (q.format === 'mcq') {
+          const correct = ua === q.answer
+          done++
+          setGradeProgress(done)
+          return {
+            ...q,
+            userAnswer: ua,
+            verdict: correct ? 'correct' : 'incorrect',
+            feedback: correct ? '' : `Correct answer: ${q.answer}`
+          } as Graded
+        }
         if (ua) {
           try {
             const r = await ai.gradeAnswer({
@@ -265,14 +281,32 @@ export function Test({ go }: { go: Go }) {
         </div>
 
         <div style={{ maxWidth: 520, marginInline: 'auto', marginTop: 18 }}>
-          <textarea
-            autoFocus
-            placeholder="Type your answer…"
-            value={typed}
-            onChange={(e) => setTyped(e.target.value)}
-            style={{ minHeight: 110 }}
-            onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitAnswer() }}
-          />
+          {q.format === 'mcq' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {(q.options ?? []).map((opt) => (
+                <button
+                  key={opt}
+                  className="mcq-option"
+                  style={{
+                    borderColor: typed === opt ? 'var(--accent)' : 'var(--hairline)',
+                    background: typed === opt ? 'var(--surface-2)' : 'var(--surface)'
+                  }}
+                  onClick={() => setTyped(opt)}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <textarea
+              autoFocus
+              placeholder="Type your answer…"
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              style={{ minHeight: 110 }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitAnswer() }}
+            />
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
             <button className="btn" onClick={submitAnswer}>
               {last ? 'Finish & grade' : 'Next question'}

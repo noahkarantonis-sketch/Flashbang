@@ -11,6 +11,7 @@ export interface BankQuestion {
   topic: string
   type: CardType
   format: CardFormat
+  options?: string[] // MCQ choices (one must equal `answer`)
 }
 
 export interface BankSubject {
@@ -194,6 +195,89 @@ const methodsTheory: BankSubject = {
   ]
 }
 
+// Accounting theory — a mix of multiple-choice (the format that actually shows
+// up in ACF exams) and short-answer. MCQ targets Noah's known weak spots:
+// period vs product cost, variance direction, CVP, cash-vs-profit, debtor timing.
+const accountingTheory: BankSubject = {
+  id: 'accounting',
+  name: 'Accounting & Finance',
+  level: 'ATAR Unit 3 · Theory & multiple choice',
+  questions: [
+    {
+      topic: 'Cost Classification',
+      type: 'concept',
+      format: 'mcq',
+      question: "Factory rent in a manufacturing business is best classified as:",
+      answer: 'A product cost (manufacturing overhead)',
+      options: [
+        'A product cost (manufacturing overhead)',
+        'A period cost expensed when paid',
+        'A direct material cost',
+        'A selling and distribution expense'
+      ]
+    },
+    {
+      topic: 'Cost Classification',
+      type: 'concept',
+      format: 'mcq',
+      question: 'Which of the following is a period cost?',
+      answer: 'Sales commission paid to the sales team',
+      options: [
+        'Sales commission paid to the sales team',
+        'Direct labour on the production line',
+        'Glue used in assembling the product',
+        'Depreciation of factory machinery'
+      ]
+    },
+    {
+      topic: 'Variance Analysis',
+      type: 'concept',
+      format: 'mcq',
+      question: 'Actual material cost was $4,200; the budget was $3,800. This variance is:',
+      answer: 'Unfavourable, because actual cost exceeded budget',
+      options: [
+        'Unfavourable, because actual cost exceeded budget',
+        'Favourable, because more was spent on materials',
+        'Favourable, because it is above budget',
+        'Neither — variances only apply to revenue'
+      ]
+    },
+    {
+      topic: 'CVP Analysis',
+      type: 'concept',
+      format: 'mcq',
+      question: 'The break-even point in units is calculated as:',
+      answer: 'Fixed costs ÷ contribution margin per unit',
+      options: [
+        'Fixed costs ÷ contribution margin per unit',
+        'Fixed costs ÷ selling price per unit',
+        'Total costs ÷ selling price per unit',
+        'Contribution margin ÷ fixed costs'
+      ]
+    },
+    {
+      topic: 'Cash vs Profit',
+      type: 'concept',
+      format: 'mcq',
+      question: 'A business can be profitable yet run out of cash mainly because:',
+      answer: 'Profit includes credit sales and non-cash items like depreciation',
+      options: [
+        'Profit includes credit sales and non-cash items like depreciation',
+        'Profit and cash are always the same figure',
+        'Cash only falls when the business makes a loss',
+        'Depreciation is a cash outflow each period'
+      ]
+    },
+    {
+      topic: 'Debtor Collection',
+      type: 'concept',
+      format: 'typed',
+      question: 'In a debtors collection schedule, which month receives the largest percentage of a credit sale, and why draw a timeline first?',
+      answer: 'The month OF sale collects the largest share (e.g. 50%), then the following month (e.g. 20%), then two months later (e.g. 8%). Draw a timeline first so you collect FORWARD from the sale month and never reverse the direction.'
+    }
+  ]
+}
+
 export const questionBank: BankBranch[] = [
   {
     id: 'practice',
@@ -205,6 +289,6 @@ export const questionBank: BankBranch[] = [
     id: 'theory',
     name: 'Theory',
     blurb: 'Definitions, rules and concepts to lock in',
-    subjects: [methodsTheory]
+    subjects: [methodsTheory, accountingTheory]
   }
 ]

@@ -90,9 +90,14 @@ export function Study({
   // practice drill
   const [drillOpen, setDrillOpen] = useState(false)
 
+  // multiple-choice state
+  const [picked, setPicked] = useState<string | null>(null)
+
   const cardId = initialQueue[idx]
   const card = cards.find((c) => c.id === cardId)
-  const format = card?.format ?? 'flip'
+  const isMcq = card?.format === 'mcq' && (card.options?.length ?? 0) > 1
+  // Effective format: an MCQ card with no options falls back to a flip card.
+  const format: 'flip' | 'typed' | 'mcq' = isMcq ? 'mcq' : card?.format === 'typed' ? 'typed' : 'flip'
 
   useEffect(() => {
     setRevealed(false)
@@ -102,6 +107,7 @@ export function Study({
     setTyped('')
     setAnswerGrade(null)
     setDrillOpen(false)
+    setPicked(null)
   }, [idx])
 
   // Keyboard shortcuts: Space/Enter reveals a flip card; 1/2/3 grade once
@@ -323,7 +329,12 @@ export function Study({
   }
 
   const progress = (idx / initialQueue.length) * 100
-  const suggested = answerGrade ? VERDICT_GRADE[answerGrade.verdict] : null
+  const mcqCorrect = isMcq && picked != null && picked === card.answer
+  const suggested = answerGrade
+    ? VERDICT_GRADE[answerGrade.verdict]
+    : isMcq && picked != null
+      ? (mcqCorrect ? 'easy' : 'forgot')
+      : null
 
   return (
     <div className="fade-in">
@@ -357,6 +368,21 @@ export function Study({
         <div className="card fade-in" style={{ borderLeft: '3px solid var(--mid)' }}>
           <div className="label" style={{ marginTop: 0, color: 'var(--mid)' }}>Hint</div>
           <Markdown text={hint} />
+        </div>
+      )}
+
+      {/* ---------- MCQ CARD: pick an option ---------- */}
+      {format === 'mcq' && !revealed && (
+        <div style={{ marginTop: 22, maxWidth: 520, marginInline: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {(card.options ?? []).map((opt) => (
+            <button
+              key={opt}
+              className="mcq-option"
+              onClick={() => { setPicked(opt); setRevealed(true) }}
+            >
+              {opt}
+            </button>
+          ))}
         </div>
       )}
 
@@ -402,6 +428,30 @@ export function Study({
       {/* ---------- REVEALED ---------- */}
       {revealed && (
         <div className="fade-in">
+          {/* MCQ: show the options, mark correct + the user's pick */}
+          {isMcq && (
+            <div style={{ marginTop: 22, maxWidth: 520, marginInline: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {(card.options ?? []).map((opt) => {
+                const correct = opt === card.answer
+                const wrongPick = opt === picked && !correct
+                return (
+                  <div
+                    key={opt}
+                    className="mcq-option"
+                    style={{
+                      cursor: 'default',
+                      borderColor: correct ? 'var(--strong)' : wrongPick ? 'var(--weak)' : 'var(--hairline)',
+                      color: correct ? 'var(--strong)' : wrongPick ? 'var(--weak)' : 'var(--ink)',
+                      fontWeight: correct || wrongPick ? 600 : 400
+                    }}
+                  >
+                    {opt}{correct ? '  ✓' : wrongPick ? '  ✗' : ''}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
           {/* verdict for typed answers */}
           {answerGrade && (
             <div className="card fade-in" style={{ marginTop: 24, borderLeft: `3px solid ${VERDICT_COLOR[answerGrade.verdict]}` }}>
@@ -414,13 +464,17 @@ export function Study({
             </div>
           )}
 
-          <div className="divider" style={{ margin: '24px 0' }} />
-          <div className="label" style={{ marginTop: 0, textAlign: answerGrade ? 'left' : 'center' }}>
-            {answerGrade ? 'Model answer' : ''}
-          </div>
-          <div style={{ fontSize: 17, textAlign: answerGrade ? 'left' : 'center', lineHeight: 1.5, marginBottom: 8 }}>
-            {card.answer}
-          </div>
+          {!isMcq && (
+            <>
+              <div className="divider" style={{ margin: '24px 0' }} />
+              <div className="label" style={{ marginTop: 0, textAlign: answerGrade ? 'left' : 'center' }}>
+                {answerGrade ? 'Model answer' : ''}
+              </div>
+              <div style={{ fontSize: 17, textAlign: answerGrade ? 'left' : 'center', lineHeight: 1.5, marginBottom: 8 }}>
+                {card.answer}
+              </div>
+            </>
+          )}
 
           {explanation && (
             <div className="card fade-in" style={{ marginTop: 16 }}>

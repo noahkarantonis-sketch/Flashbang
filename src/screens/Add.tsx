@@ -556,19 +556,33 @@ function ReviewCard({
       ) : (
         <>
           <div style={{ fontWeight: 600, marginBottom: 6 }}>{card.question}</div>
-          <div className="muted">{card.answer}</div>
+          {card.format === 'mcq' && card.options ? (
+            <ul className="muted" style={{ margin: '4px 0 0 18px', fontSize: 14 }}>
+              {card.options.map((o) => (
+                <li key={o} style={{ color: o === card.answer ? 'var(--strong)' : undefined }}>
+                  {o}{o === card.answer ? '  ✓' : ''}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="muted">{card.answer}</div>
+          )}
           <div className="divider" />
           <div className="row">
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               <span className="pill">{card.topic}</span>
-              <button
-                className="pill"
-                onClick={() => onEdit({ format: (card.format ?? 'flip') === 'typed' ? 'flip' : 'typed' })}
-                title="Switch how you answer this card"
-                style={{ cursor: 'pointer', border: '1px solid var(--hairline)', background: 'transparent' }}
-              >
-                {(card.format ?? 'flip') === 'typed' ? 'Type-in' : 'Flip'}
-              </button>
+              {card.format === 'mcq' ? (
+                <span className="pill">Multiple choice</span>
+              ) : (
+                <button
+                  className="pill"
+                  onClick={() => onEdit({ format: (card.format ?? 'flip') === 'typed' ? 'flip' : 'typed' })}
+                  title="Switch how you answer this card"
+                  style={{ cursor: 'pointer', border: '1px solid var(--hairline)', background: 'transparent' }}
+                >
+                  {(card.format ?? 'flip') === 'typed' ? 'Type-in' : 'Flip'}
+                </button>
+              )}
             </div>
             <div className="btn-row">
               <button className="muted" onClick={() => setEditing(true)} title="Edit">

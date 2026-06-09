@@ -256,15 +256,19 @@ export function Settings() {
               How freshly generated cards behave — let the AI choose, or force one.
             </span>
           </div>
-          <div className="btn-row">
-            {(['auto', 'flip', 'typed'] as const).map((f) => (
+          <div className="btn-row" style={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {([
+              ['auto', 'Auto'],
+              ['flip', 'Flip'],
+              ['typed', 'Type-in'],
+              ['mcq', 'Multiple choice']
+            ] as const).map(([f, label]) => (
               <button
                 key={f}
                 className={'btn btn-sm ' + (defaultFormat === f ? '' : 'btn-ghost')}
                 onClick={() => setDefaultFormat(f)}
-                style={{ textTransform: 'capitalize' }}
               >
-                {f}
+                {label}
               </button>
             ))}
           </div>

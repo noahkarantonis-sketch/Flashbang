@@ -13,6 +13,7 @@ export interface GeneratedCard {
   topic: string
   type: CardType
   format?: CardFormat
+  options?: string[]
 }
 
 // The in-progress "Add cards" flow. Lives in the store (not Add's local state)
@@ -62,7 +63,7 @@ interface State {
   // customisation
   accent: string // accent palette key ('default' | 'sage' | 'terracotta' | 'plum')
   dailyGoal: number // target reviews per day (0 = off)
-  defaultFormat: 'auto' | 'flip' | 'typed' // format for newly generated cards
+  defaultFormat: 'auto' | 'flip' | 'typed' | 'mcq' // format for newly generated cards
   uiStyle: 'classic' | 'refined' // overall visual treatment; classic = original
   density: 'comfortable' | 'compact' // spacing scale
 
@@ -106,7 +107,7 @@ interface State {
   setAutoAdvance: (v: boolean) => void
   setAccent: (a: string) => void
   setDailyGoal: (n: number) => void
-  setDefaultFormat: (f: 'auto' | 'flip' | 'typed') => void
+  setDefaultFormat: (f: 'auto' | 'flip' | 'typed' | 'mcq') => void
   setUiStyle: (s: 'classic' | 'refined') => void
   setDensity: (d: 'comfortable' | 'compact') => void
 }
@@ -167,8 +168,16 @@ export const useStore = create<State>()(
           answer: g.answer,
           topic: g.topic || 'General',
           type: g.type,
-          format:
-            pref === 'auto' ? (g.format === 'typed' ? 'typed' : 'flip') : pref,
+          options: g.options,
+          // MCQ cards keep their format (they carry options). Otherwise honour
+          // the user's default-format preference, falling back to the AI's pick.
+          format: g.format === 'mcq' && g.options?.length
+            ? 'mcq'
+            : pref === 'auto'
+              ? (g.format === 'typed' ? 'typed' : 'flip')
+              : pref === 'mcq'
+                ? 'flip' // can't force MCQ without options
+                : pref,
           subjectId,
           docId,
           createdAt: now,

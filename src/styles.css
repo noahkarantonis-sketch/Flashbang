@@ -157,6 +157,21 @@ h3,
 .scope-btn {
   transition: border-color 0.12s ease, background 0.12s ease;
 }
+/* Multiple-choice option button */
+.mcq-option {
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--hairline);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, transform 0.1s ease;
+}
+.mcq-option:hover { border-color: var(--accent); background: var(--surface-2); }
+.mcq-option:active { transform: scale(0.99); }
 
 /* Buttons --------------------------------------------------- */
 button {
