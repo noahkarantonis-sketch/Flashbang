@@ -3,7 +3,6 @@ import { useStore, type GeneratedCard } from '../store'
 import type { StudyDoc } from '../types'
 import { ai, aiErrorMessage } from '../lib/ai'
 import { CameraIcon, FileIcon, PasteIcon, ChevronLeft, EditIcon, TestIcon, ChevronRight } from '../components/Icons'
-import { questionBank } from '../data/questionBank'
 import type { Tab } from '../App'
 
 // Turns raw extracted exam questions into clean, original, style-matched
@@ -25,6 +24,8 @@ function fileToBase64(file: File): Promise<string> {
 
 export function Add({ go }: { go: (t: Tab, topic?: string | null) => void }) {
   const { subjects, addSubject, commitGenerated, addDraft, patchAddDraft, resetAddDraft } = useStore()
+  // The question bank comes from the store (remote-fetched on launch, bundled fallback).
+  const questionBank = useStore((s) => s.bank)
   // The draft lives in the store so switching tabs mid-flow doesn't lose it.
   const { phase, pasteText, cards, docTitle, docKind, newSubject, refineText, error, examMode } = addDraft
   const subjectId = addDraft.subjectId || subjects[0]?.id || ''

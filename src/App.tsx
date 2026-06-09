@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { useStore } from './store'
 import { supabase, supabaseConfigured } from './lib/supabase'
 import { checkForUpdate, type UpdateInfo } from './lib/version'
+import { fetchRemoteBank } from './lib/bank'
 import { Auth } from './screens/Auth'
 import { Onboarding } from './screens/Onboarding'
 import { Home } from './screens/Home'
@@ -55,6 +56,14 @@ export function App() {
 
   useEffect(() => {
     checkForUpdate().then(setUpdate)
+  }, [])
+
+  // Refresh the question bank from the hosted copy (added questions reach users
+  // without an app update). Silently keeps the cached/bundled bank on failure.
+  useEffect(() => {
+    fetchRemoteBank().then((b) => {
+      if (b) useStore.getState().setBank(b)
+    })
   }, [])
 
   useEffect(() => {

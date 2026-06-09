@@ -1,0 +1,712 @@
+{
+  "version": 3,
+  "note": "Flashbang built-in question bank. Original, style-matched WACE practice (NOT verbatim copies of any paper). This file is the bundled fallback; the live copy is hosted at /bank.json on the landing site and fetched on launch, so questions can be added without an app update. Shape: branches[] -> subjects[] -> questions[]. A question is MCQ only when format='mcq' and options has 2+ entries (one must equal answer); otherwise flip/typed.",
+  "branches": [
+    {
+      "id": "practice",
+      "name": "Practice",
+      "blurb": "Exam-style questions to work through",
+      "subjects": [
+        {
+          "id": "methods",
+          "name": "Mathematics Methods",
+          "level": "ATAR Unit 3 · Calculator-free",
+          "questions": [
+            {
+              "topic": "Integration & Area",
+              "type": "application",
+              "format": "flip",
+              "question": "Determine the area enclosed by the x-axis, the y-axis, the line x = 2 and the curve y = 48/(3x + 2)². (5 marks)",
+              "answer": "Area = ∫₀² 48(3x+2)⁻² dx. Antiderivative: 48·(3x+2)⁻¹/(−1·3) = −16/(3x+2).\nEvaluate 0→2: [−16/(3x+2)]₀² = −16/8 − (−16/2) = −2 + 8 = 6.\nArea = 6 square units."
+            },
+            {
+              "topic": "Kinematics",
+              "type": "application",
+              "format": "flip",
+              "question": "A particle starts from rest at the origin and moves in a straight line with acceleration a(t) = 2t − 6 ms⁻², t ≥ 0.\n(a) Find v(t).  (b) Find the acceleration when v = 7.  (c) Find the velocity as it passes through the origin for the last time. (8 marks)",
+              "answer": "(a) v = ∫(2t−6) dt = t² − 6t + C. v(0) = 0 ⇒ C = 0, so v(t) = t² − 6t.\n(b) t² − 6t = 7 ⇒ t² − 6t − 7 = 0 ⇒ (t−7)(t+1) = 0 ⇒ t = 7 (t ≥ 0). a(7) = 2(7) − 6 = 8 ms⁻².\n(c) x = ∫v dt = t³/3 − 3t². x = 0 ⇒ t²(t/3 − 3) = 0 ⇒ t = 0 or t = 9. Last time t = 9: v(9) = 81 − 54 = 27 ms⁻¹."
+            },
+            {
+              "topic": "Differentiation & Curve Analysis",
+              "type": "application",
+              "format": "flip",
+              "question": "For f(x) = eˣ(x² − 5):\n(a) Show that f′(x) = eˣ(x² + 2x − 5).  (b) Find the x-coordinates of the stationary points.  (c) Given f″(x) = eˣ(x² + 4x − 3), use the second derivative to classify each stationary point. (6 marks)",
+              "answer": "(a) Product rule: f′ = eˣ(x²−5) + eˣ(2x) = eˣ(x² + 2x − 5). ✓\n(b) Stationary where f′ = 0: x² + 2x − 5 = 0 ⇒ x = −1 ± √6.\n(c) f″ sign (eˣ > 0): at x = −1−√6, x²+4x−3 = −2√6 < 0 ⇒ local maximum. At x = −1+√6, x²+4x−3 = 2√6 > 0 ⇒ local minimum."
+            },
+            {
+              "topic": "Differentiation Rules",
+              "type": "application",
+              "format": "flip",
+              "question": "(a) Determine d/dx [ (1 + e³ˣ) / (1 + x²) ].  (b) Determine d/dx [ 3x sin(2x) ].  (c) Hence determine ∫ 6x cos(2x) dx. (8 marks)",
+              "answer": "(a) Quotient rule: [3e³ˣ(1+x²) − (1+e³ˣ)(2x)] / (1+x²)².\n(b) Product rule: 3 sin(2x) + 6x cos(2x).\n(c) From (b), ∫[3 sin(2x) + 6x cos(2x)] dx = 3x sin(2x) + C, so ∫6x cos(2x) dx = 3x sin(2x) − ∫3 sin(2x) dx = 3x sin(2x) + (3/2)cos(2x) + C."
+            },
+            {
+              "topic": "Random Variables",
+              "type": "application",
+              "format": "flip",
+              "question": "A discrete random variable X has P(X = 0,1,2,3) = a, a + b, b, 2a respectively, with E(X) = 1.6.\n(a) Find a and b.  (b) Find E(3 − 2X) and Var(3 − 2X), given Var(X) = 0.84. (6 marks)",
+              "answer": "(a) Probabilities sum to 1: 4a + 2b = 1. E(X) = (a+b) + 2b + 6a = 7a + 3b = 1.6. Solving: a = 0.1, b = 0.3. (Check: 0.1, 0.4, 0.3, 0.2 → sum 1 ✓, E = 1.6 ✓.)\n(b) E(3 − 2X) = 3 − 2E(X) = 3 − 3.2 = −0.2. Var(3 − 2X) = (−2)²Var(X) = 4(0.84) = 3.36. (The +3 shift does NOT affect variance.)"
+            },
+            {
+              "topic": "Increments & Antidifferentiation",
+              "type": "application",
+              "format": "flip",
+              "question": "(a) A function f has f(1) = −2 and f′(x) = √(5 + x²). Use the increments formula to approximate f(1.1).\n(b) A function C has C(1) = 10 and C′(x) = 3√(x + 3). Explain why the increments formula would not give a good approximation for C(6), then find C(6) exactly. (7 marks)",
+              "answer": "(a) δf ≈ f′(1)·δx = √6 × 0.1. So f(1.1) ≈ −2 + 0.1√6.\n(b) The increment δx = 5 is not small, so the linear approximation is unreliable. Integrate: C(x) = ∫3(x+3)^½ dx = 2(x+3)^{3/2} + k. C(1) = 2(4)^{3/2} + k = 16 + k = 10 ⇒ k = −6. C(6) = 2(9)^{3/2} − 6 = 54 − 6 = 48."
+            },
+            {
+              "topic": "Optimisation",
+              "type": "application",
+              "format": "flip",
+              "question": "A rectangle has its base on the x-axis, lower-left corner at the origin, and upper-right corner on y = cos(2x) for 0 ≤ x ≤ π/4. Its perimeter is p(x) = 2x + 2cos(2x). Determine the largest perimeter. (4 marks)",
+              "answer": "p′(x) = 2 − 4 sin(2x) = 0 ⇒ sin(2x) = ½ ⇒ 2x = π/6 ⇒ x = π/12. (p″ = −8cos(2x) < 0 ⇒ maximum.)\np(π/12) = 2(π/12) + 2cos(π/6) = π/6 + 2(√3/2) = π/6 + √3."
+            },
+            {
+              "topic": "Fundamental Theorem",
+              "type": "application",
+              "format": "flip",
+              "question": "A function is given by f(t) = 4 − ½t for 0 ≤ t ≤ 10.\n(a) Determine ∫₀² f(t) dt.  (b) For F(x) = ∫₀ˣ f(t) dt, state the value of x at which F is greatest, giving a reason. (4 marks)",
+              "answer": "(a) ∫₀²(4 − ½t) dt = [4t − ¼t²]₀² = 8 − 1 = 7.\n(b) F is greatest where F′(x) = f(x) = 0 and f changes + → −. f(t) = 0 at t = 8, and f > 0 before, < 0 after, so F is maximum at x = 8."
+            },
+            {
+              "topic": "Integration & Area",
+              "type": "application",
+              "format": "flip",
+              "question": "Determine ∫ (2x − 1)/(x² − x + 4) dx. (3 marks)",
+              "answer": "The numerator (2x − 1) is the derivative of the denominator (x² − x + 4). So the integral is of the form ∫ g′/g dx = ln|g| + C.\nAnswer: ln|x² − x + 4| + C."
+            }
+          ]
+        },
+        {
+          "id": "methods-ca",
+          "name": "Mathematics Methods",
+          "level": "ATAR Unit 3 · Calculator-assumed",
+          "questions": [
+            {
+              "topic": "Normal Distribution",
+              "type": "application",
+              "format": "flip",
+              "question": "The masses of apples are normally distributed with mean 150 g and standard deviation 12 g.\n(a) Find the probability a randomly chosen apple has mass between 140 g and 165 g.\n(b) 10% of apples are heavier than mass m. Find m. (5 marks)",
+              "answer": "(a) P(140 < X < 165) = P(−0.833 < Z < 1.25) = 0.8944 − 0.2023 = 0.692 (3 s.f.). On CAS: normCdf(140,165,150,12) ≈ 0.692.\n(b) Top 10% ⇒ z = 1.2816 (invNorm(0.90)). m = 150 + 1.2816×12 = 165.4 g."
+            },
+            {
+              "topic": "Binomial Distribution",
+              "type": "application",
+              "format": "flip",
+              "question": "A test has 8 multiple-choice questions, each with 4 options, answered by guessing. Let X be the number correct.\n(a) State the distribution of X.\n(b) Find P(X = 3).\n(c) Find P(X ≥ 2). (5 marks)",
+              "answer": "(a) X ~ B(n = 8, p = 0.25).\n(b) P(X = 3) = ⁸C₃(0.25)³(0.75)⁵ = 56 × 0.015625 × 0.2373 = 0.2076.\n(c) P(X ≥ 2) = 1 − P(X = 0) − P(X = 1) = 1 − (0.75)⁸ − 8(0.25)(0.75)⁷ = 1 − 0.1001 − 0.2670 = 0.633."
+            },
+            {
+              "topic": "Binomial to Normal",
+              "type": "application",
+              "format": "flip",
+              "question": "A factory produces components, 6% of which are defective. A sample of 500 is taken. Using the mean and standard deviation of the number of defectives, find the probability that more than 40 are defective. (4 marks)",
+              "answer": "X ~ B(500, 0.06). Mean μ = np = 30. SD = √(np(1−p)) = √(500×0.06×0.94) = √28.2 = 5.31.\nP(X > 40) ≈ normCdf using μ=30, σ=5.31: P(X > 40) = P(Z > (40−30)/5.31) = P(Z > 1.883) = 0.0298 (≈3%)."
+            },
+            {
+              "topic": "Exponential Models",
+              "type": "application",
+              "format": "flip",
+              "question": "A cup of coffee cools according to T(t) = 22 + 68e^(−0.04t), where T is in °C and t in minutes.\n(a) State the initial temperature.\n(b) Find the temperature after 15 minutes.\n(c) Find the rate of cooling at t = 15. (5 marks)",
+              "answer": "(a) T(0) = 22 + 68 = 90 °C.\n(b) T(15) = 22 + 68e^(−0.6) = 22 + 68(0.5488) = 59.3 °C.\n(c) T′(t) = 68×(−0.04)e^(−0.04t) = −2.72e^(−0.04t). T′(15) = −2.72e^(−0.6) = −1.49 °C/min (cooling)."
+            },
+            {
+              "topic": "Logarithms",
+              "type": "application",
+              "format": "flip",
+              "question": "Solve for x: 2e^(0.5x) = 30, giving your answer to 3 significant figures. (3 marks)",
+              "answer": "e^(0.5x) = 15 ⇒ 0.5x = ln 15 = 2.708 ⇒ x = 5.42 (3 s.f.)."
+            }
+          ]
+        },
+        {
+          "id": "physics",
+          "name": "Physics",
+          "level": "ATAR Unit 3 · Gravity, motion & electromagnetism",
+          "questions": [
+            {
+              "topic": "Projectile Motion",
+              "type": "application",
+              "format": "flip",
+              "question": "A ball is launched at 20 ms⁻¹ at 30° above the horizontal from the top of a 25 m cliff. Take g = 9.8 ms⁻². Find:\n(a) the time of flight until it lands at the base, and\n(b) the horizontal range, and\n(c) its speed on impact. (8 marks)",
+              "answer": "Components: vₓ = 20cos30 = 17.3 ms⁻¹ (constant); v_y = 20sin30 = 10 ms⁻¹ (up).\n(a) Taking up as positive, landing displacement S_y = −25: −25 = 10t − 4.9t² ⇒ 4.9t² − 10t − 25 = 0 ⇒ t = (10 + √590)/9.8 = 3.50 s.\n(b) Range = vₓ·t = 17.3 × 3.50 = 60.6 m.\n(c) v_y(final) = 10 − 9.8(3.50) = −24.3 ms⁻¹. Speed = √(17.3² + 24.3²) = √890 = 29.8 ms⁻¹. (Combine the two components — NEVER the launch speed.)"
+            },
+            {
+              "topic": "Circular Motion (Loop)",
+              "type": "application",
+              "format": "flip",
+              "question": "A cart of mass m travels on the inside of a vertical circular loop of radius 8.0 m.\n(a) Find the minimum speed at the TOP of the loop to maintain contact.\n(b) Explain which force provides the centripetal force at the top. (5 marks)",
+              "answer": "(a) At minimum speed the normal force N = 0, so gravity alone provides the centripetal force: mg = mv²/r ⇒ v = √(gr) = √(9.8 × 8.0) = √78.4 = 8.85 ms⁻¹.\n(b) At the top, BOTH the normal force and gravity point downward (toward the centre). Their sum is the net centripetal force: N + mg = mv²/r. This is NOT equilibrium — there is a net inward force."
+            },
+            {
+              "topic": "Banked Curves",
+              "type": "application",
+              "format": "flip",
+              "question": "A car travels at 25 ms⁻¹ around a curve of radius 80 m. Find the angle at which the road should be banked so that no friction is required. Take g = 9.8 ms⁻². (4 marks)",
+              "answer": "For frictionless banking, resolve the normal force: N cosθ = mg (vertical) and N sinθ = mv²/r (horizontal). Dividing: tanθ = v²/(rg) = 25²/(80 × 9.8) = 625/784 = 0.797 ⇒ θ = 38.6°. (Sanity check: faster ⇒ steeper, so v²/rg not rg/v².)"
+            },
+            {
+              "topic": "Vertical Circle Energy",
+              "type": "application",
+              "format": "flip",
+              "question": "A cart starts from rest and rolls down a frictionless track into a vertical loop of radius 10 m. Find the minimum starting height (above the bottom of the loop) for the cart to just complete the loop. (4 marks)",
+              "answer": "Minimum speed at the top: v_top² = gr. Energy conservation (bottom datum): mgh = mg(2r) + ½mv_top² = 2mgr + ½m(gr) = 2.5mgr ⇒ h = 2.5r = 2.5 × 10 = 25 m. (Use KE_top = E_total − PE_top, never ½mv² = PE.)"
+            },
+            {
+              "topic": "Gravitation & Orbits",
+              "type": "application",
+              "format": "flip",
+              "question": "A satellite orbits Earth in a circular orbit of radius 7.0 × 10⁶ m. Earth's mass is 5.97 × 10²⁴ kg, G = 6.67 × 10⁻¹¹ N m² kg⁻². Find:\n(a) the orbital speed, and\n(b) the period of the orbit. (6 marks)",
+              "answer": "(a) Gravitation provides the centripetal force: GMm/r² = mv²/r ⇒ v = √(GM/r) = √(6.67×10⁻¹¹ × 5.97×10²⁴ / 7.0×10⁶) = √(5.69×10⁷) = 7.54 × 10³ ms⁻¹.\n(b) T = 2πr/v = 2π(7.0×10⁶)/7.54×10³ = 5.83 × 10³ s (≈ 97 min). (Magnitude-check the exponents.)"
+            },
+            {
+              "topic": "Friction & Circular Motion",
+              "type": "application",
+              "format": "flip",
+              "question": "A car of mass 1200 kg rounds a flat (unbanked) curve of radius 50 m. The coefficient of friction between the tyres and road is 0.60. Find the maximum speed before the car slides. (4 marks)",
+              "answer": "Friction supplies the centripetal force: μmg = mv²/r ⇒ v = √(μrg) = √(0.60 × 50 × 9.8) = √294 = 17.1 ms⁻¹. (Mass cancels — it does not affect the maximum speed.)"
+            },
+            {
+              "topic": "Electromagnetic Induction",
+              "type": "application",
+              "format": "flip",
+              "question": "A coil of 200 turns experiences a uniform change in magnetic flux from 0.050 Wb to 0.010 Wb in 0.20 s.\n(a) Calculate the magnitude of the average induced EMF.\n(b) State Lenz's law and what determines the direction of the induced current. (5 marks)",
+              "answer": "(a) |EMF| = N·ΔΦ/Δt = 200 × (0.050 − 0.010)/0.20 = 200 × 0.040/0.20 = 40 V.\n(b) Lenz's law: the induced current flows in the direction that opposes the change in flux producing it (a consequence of conservation of energy). Here the flux is decreasing, so the induced current acts to maintain it."
+            },
+            {
+              "topic": "Force on a Conductor",
+              "type": "application",
+              "format": "flip",
+              "question": "A straight wire of length 0.50 m carries a current of 3.0 A perpendicular to a uniform magnetic field of 0.40 T.\n(a) Calculate the force on the wire.\n(b) State how the force changes if the wire is instead aligned parallel to the field. (4 marks)",
+              "answer": "(a) F = BIL sinθ = 0.40 × 3.0 × 0.50 × sin90° = 0.60 N.\n(b) Parallel to the field, θ = 0°, so sinθ = 0 and the force is zero — a current-carrying conductor feels no magnetic force when it runs along the field."
+            }
+          ]
+        },
+        {
+          "id": "applications",
+          "name": "Mathematics Applications",
+          "level": "ATAR Unit 3 · Bivariate, sequences & networks",
+          "questions": [
+            {
+              "topic": "Bivariate Data",
+              "type": "application",
+              "format": "flip",
+              "question": "A least-squares regression line relating a car's fuel use y (L/100km) to its mass x (tonnes) is y = 2.1 + 4.8x, with r = 0.92.\n(a) Interpret the slope in context.\n(b) Calculate the coefficient of determination and interpret it.\n(c) Predict the fuel use of a 1.5 t car, and state whether this is interpolation or extrapolation given data spanned 0.9–2.0 t. (6 marks)",
+              "answer": "(a) For each additional tonne of mass, fuel use increases by 4.8 L/100km on average.\n(b) r² = 0.92² = 0.846. About 84.6% of the variation in fuel use is explained by the linear relationship with mass.\n(c) y = 2.1 + 4.8(1.5) = 9.3 L/100km. 1.5 t lies within 0.9–2.0 t, so this is interpolation (reliable)."
+            },
+            {
+              "topic": "Time Series",
+              "type": "application",
+              "format": "flip",
+              "question": "A shop's actual sales in Quarter 2 were $84,000. The seasonal index for Quarter 2 is 1.20.\n(a) Calculate the deseasonalised sales.\n(b) Explain what a seasonal index of 1.20 tells you about Quarter 2. (4 marks)",
+              "answer": "(a) Deseasonalised = actual ÷ seasonal index = 84,000 ÷ 1.20 = $70,000.\n(b) Quarter 2 sales are typically 20% above the average quarter — it is a peak (above-trend) season. (The four quarterly indices average to 1.)"
+            },
+            {
+              "topic": "Arithmetic Sequences",
+              "type": "application",
+              "format": "flip",
+              "question": "An arithmetic sequence has first term a = 5 and common difference d = 3.\n(a) Find the 10th term.\n(b) Find the sum of the first 10 terms.\n(c) Write the recurrence relation. (5 marks)",
+              "answer": "(a) T₁₀ = a + (n−1)d = 5 + 9(3) = 32.\n(b) S₁₀ = n/2[2a + (n−1)d] = 10/2[10 + 27] = 5 × 37 = 185.\n(c) Tₙ₊₁ = Tₙ + 3, T₁ = 5."
+            },
+            {
+              "topic": "Geometric Sequences & Growth",
+              "type": "application",
+              "format": "flip",
+              "question": "$8000 is invested at 6% per annum, compounded annually.\n(a) Write a recurrence relation for the balance.\n(b) Find the value after 5 years.\n(c) State whether this models arithmetic or geometric growth. (5 marks)",
+              "answer": "(a) Bₙ₊₁ = 1.06 × Bₙ, B₀ = 8000.\n(b) B₅ = 8000 × 1.06⁵ = 8000 × 1.33823 = $10,705.80.\n(c) Geometric growth — a constant multiplier (1.06) each period, not a constant addition."
+            },
+            {
+              "topic": "Depreciation",
+              "type": "application",
+              "format": "flip",
+              "question": "A machine bought for $20,000 depreciates at 15% per annum using the reducing-balance method.\n(a) Find its value after 3 years.\n(b) How does this differ from flat-rate (straight-line) depreciation? (4 marks)",
+              "answer": "(a) Value = 20,000 × (1 − 0.15)³ = 20,000 × 0.85³ = 20,000 × 0.614125 = $12,282.50.\n(b) Reducing-balance applies the % to the current (declining) value each year → geometric decay. Flat-rate subtracts a fixed dollar amount each year → arithmetic (linear) decay."
+            },
+            {
+              "topic": "Graphs & Networks",
+              "type": "application",
+              "format": "flip",
+              "question": "A connected network has vertices with degrees 4, 3, 3, 2, 2.\n(a) Use the handshake relationship to find the number of edges.\n(b) State whether an Euler trail (path) exists, with a reason. (4 marks)",
+              "answer": "(a) Sum of degrees = 4+3+3+2+2 = 14 = 2 × edges ⇒ edges = 7.\n(b) An Euler trail exists iff the graph has exactly 0 or 2 vertices of odd degree. Here two vertices have odd degree (the two 3s), so an Euler trail exists (starting and ending at those two odd vertices)."
+            },
+            {
+              "topic": "Minimum Spanning Tree",
+              "type": "application",
+              "format": "flip",
+              "question": "A network connects towns A, B, C, D with edge weights (km): AB = 3, AC = 4, BC = 1, BD = 5, CD = 2.\nFind the minimum spanning tree and its total length. (4 marks)",
+              "answer": "Using Kruskal's (add cheapest edges that don't form a cycle): BC = 1, then CD = 2, then AB = 3 (AC = 4 and BD = 5 would either form a cycle or be heavier). These three edges connect all four towns.\nMST edges: BC, CD, AB. Total = 1 + 2 + 3 = 6 km."
+            },
+            {
+              "topic": "Shortest Path",
+              "type": "application",
+              "format": "flip",
+              "question": "In a network from S to T, the possible routes and total weights are: S–A–T = 4 + 7 = 11, S–B–T = 6 + 3 = 9, S–A–B–T = 4 + 2 + 3 = 9, S–B–A–T = 6 + 2 + 7 = 15. Find the shortest path and its length. (3 marks)",
+              "answer": "Compare totals: 11, 9, 9, 15. The minimum is 9, achieved by two routes: S–B–T (6+3) and S–A–B–T (4+2+3). Shortest path length = 9."
+            }
+          ]
+        },
+        {
+          "id": "accounting",
+          "name": "Accounting & Finance",
+          "level": "ATAR Unit 3 · Exam-style problems",
+          "questions": [
+            {
+              "topic": "CVP Analysis",
+              "type": "application",
+              "format": "flip",
+              "question": "A business sells one product for $50. Variable cost per unit is $30 and fixed costs are $60,000 per year.\n(a) Find the contribution margin per unit.\n(b) Find the break-even point in units and in sales dollars.\n(c) Find the units needed to earn a target profit of $40,000. (6 marks)",
+              "answer": "(a) CM = SP − VC = 50 − 30 = $20 per unit.\n(b) Break-even units = Fixed costs ÷ CM = 60,000 ÷ 20 = 3,000 units. Break-even sales = 3,000 × $50 = $150,000.\n(c) Units = (Fixed costs + target profit) ÷ CM = (60,000 + 40,000) ÷ 20 = 5,000 units."
+            },
+            {
+              "topic": "Net Present Value",
+              "type": "application",
+              "format": "flip",
+              "question": "A project costs $50,000 now and returns net cash inflows of $22,000 at the end of each of the next 3 years. The discount rate is 10% (PV factors: Yr1 0.909, Yr2 0.826, Yr3 0.751).\n(a) Calculate the NPV.\n(b) State whether the project should be accepted, with a reason. (5 marks)",
+              "answer": "(a) PV of inflows = 22,000 × (0.909 + 0.826 + 0.751) = 22,000 × 2.486 = $54,692. NPV = 54,692 − 50,000 = +$4,692.\n(b) Accept — the NPV is positive, so the project returns more than the 10% required return (it adds value)."
+            },
+            {
+              "topic": "Payback Period",
+              "type": "application",
+              "format": "flip",
+              "question": "A machine costs $50,000 and generates even net cash inflows of $22,000 per year.\n(a) Calculate the payback period.\n(b) State one limitation of the payback method. (4 marks)",
+              "answer": "(a) Payback = initial outlay ÷ annual inflow = 50,000 ÷ 22,000 = 2.27 years (≈ 2 years 4 months).\n(b) It ignores the time value of money and any cash flows received after the payback point — so it can favour a project that is less profitable overall."
+            },
+            {
+              "topic": "Debtors Collection Schedule",
+              "type": "application",
+              "format": "flip",
+              "question": "Credit sales: March $40,000, April $50,000, May $60,000. The collection pattern is 50% in the month of sale, 30% the following month, 20% two months after.\nCalculate the total cash received from debtors in May. (5 marks)",
+              "answer": "Work FORWARD from each sale month (draw the timeline):\n• From May sales: 50% × 60,000 = 30,000\n• From April sales: 30% × 50,000 = 15,000\n• From March sales: 20% × 40,000 = 8,000\nTotal May receipts = 30,000 + 15,000 + 8,000 = $53,000. (Never reverse the direction — current month gets the largest share.)"
+            },
+            {
+              "topic": "Cash vs Profit",
+              "type": "application",
+              "format": "typed",
+              "question": "A business reports a net profit of $30,000 but its bank balance fell by $5,000 over the same year. Give two reasons this can happen. (4 marks)",
+              "answer": "Profit and cash differ because of accrual accounting and non-operating cash flows. Possible reasons: (1) credit sales are in profit but not yet collected as cash; (2) inventory or a non-current asset was bought for cash (reduces cash, not profit); (3) drawings or loan repayments reduce cash but not profit; (4) depreciation reduces profit but is not a cash outflow. Any two valid reasons."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "theory",
+      "name": "Theory",
+      "blurb": "Definitions, rules and concepts to lock in",
+      "subjects": [
+        {
+          "id": "methods",
+          "name": "Mathematics Methods",
+          "level": "ATAR Unit 3 · Core rules & concepts",
+          "questions": [
+            {
+              "topic": "Differentiation Rules",
+              "type": "formula",
+              "format": "flip",
+              "question": "State the product rule and the quotient rule for differentiation.",
+              "answer": "Product: d/dx[u·v] = u′v + uv′.\nQuotient: d/dx[u/v] = (u′v − uv′)/v²."
+            },
+            {
+              "topic": "Differentiation Rules",
+              "type": "formula",
+              "format": "flip",
+              "question": "State the chain rule, and the derivatives of eˣ, ln x, sin x and cos x.",
+              "answer": "Chain: d/dx f(g(x)) = f′(g(x))·g′(x).\nd/dx eˣ = eˣ;  d/dx ln x = 1/x;  d/dx sin x = cos x;  d/dx cos x = −sin x."
+            },
+            {
+              "topic": "Curve Analysis",
+              "type": "concept",
+              "format": "typed",
+              "question": "What is a stationary point, and how do you use the second derivative to classify one?",
+              "answer": "A stationary point is where f′(x) = 0. Second-derivative test: f″ > 0 ⇒ local minimum; f″ < 0 ⇒ local maximum; f″ = 0 is inconclusive (use a sign test of f′ either side)."
+            },
+            {
+              "topic": "Random Variables",
+              "type": "concept",
+              "format": "typed",
+              "question": "How do you find an unknown constant k in a discrete probability distribution?",
+              "answer": "Sum EVERY P(X = x), set the total equal to 1, and solve for k. It is often a quadratic — find both roots and reject any that make a probability negative or greater than 1."
+            },
+            {
+              "topic": "Random Variables",
+              "type": "formula",
+              "format": "flip",
+              "question": "State the rules for E(aX + b) and Var(aX + b).",
+              "answer": "E(aX + b) = aE(X) + b.\nVar(aX + b) = a²Var(X). The constant b does NOT affect the variance — only the multiplier a, and it is squared."
+            },
+            {
+              "topic": "Random Variables",
+              "type": "formula",
+              "format": "flip",
+              "question": "How do you calculate E(X) and Var(X) from a probability distribution table?",
+              "answer": "E(X) = Σ x·P(X = x).\nVar(X) = E(X²) − [E(X)]² = Σ x²·P(X = x) − [E(X)]².  SD(X) = √Var(X)."
+            },
+            {
+              "topic": "Increments",
+              "type": "concept",
+              "format": "typed",
+              "question": "State the increments formula and when it is valid to use.",
+              "answer": "δf ≈ f′(x)·δx (equivalently f(x + δx) ≈ f(x) + f′(x)·δx). It is only a good approximation when δx is small; for large increments it is unreliable and you should integrate instead."
+            },
+            {
+              "topic": "Integration",
+              "type": "concept",
+              "format": "typed",
+              "question": "State the Fundamental Theorem of Calculus (both parts).",
+              "answer": "If F(x) = ∫ₐˣ f(t) dt then F′(x) = f(x) (differentiation undoes integration). And ∫ₐᵇ f(x) dx = F(b) − F(a), where F is any antiderivative of f."
+            },
+            {
+              "topic": "Integration",
+              "type": "formula",
+              "format": "flip",
+              "question": "What is ∫ g′(x)/g(x) dx, and what is the reverse chain rule for ∫ (ax + b)ⁿ dx?",
+              "answer": "∫ g′(x)/g(x) dx = ln|g(x)| + C.\n∫ (ax + b)ⁿ dx = (ax + b)ⁿ⁺¹ / [a(n+1)] + C, for n ≠ −1."
+            },
+            {
+              "topic": "Kinematics",
+              "type": "concept",
+              "format": "typed",
+              "question": "How are displacement, velocity and acceleration related by calculus?",
+              "answer": "Differentiate to go down: x → v = dx/dt → a = dv/dt. Integrate to go up: a → v = ∫a dt → x = ∫v dt (each integration needs an initial condition to find the constant)."
+            },
+            {
+              "topic": "Normal Distribution",
+              "type": "concept",
+              "format": "mcq",
+              "question": "To standardise a normal variable X with mean μ and standard deviation σ, you use:",
+              "answer": "Z = (X − μ) / σ",
+              "options": [
+                "Z = (X − μ) / σ",
+                "Z = (X − μ) / σ²",
+                "Z = (μ − X) / σ",
+                "Z = X / (μσ)"
+              ]
+            },
+            {
+              "topic": "Binomial Distribution",
+              "type": "formula",
+              "format": "flip",
+              "question": "For X ~ B(n, p), state P(X = x), the mean, and the variance.",
+              "answer": "P(X = x) = ⁿCₓ pˣ(1−p)ⁿ⁻ˣ.\nMean = np.  Variance = np(1−p).  SD = √(np(1−p))."
+            }
+          ]
+        },
+        {
+          "id": "physics",
+          "name": "Physics",
+          "level": "ATAR Unit 3 · Definitions & key relationships",
+          "questions": [
+            {
+              "topic": "Gravitation",
+              "type": "formula",
+              "format": "flip",
+              "question": "State Newton's law of universal gravitation and define each symbol.",
+              "answer": "F = Gm₁m₂/r², where F is the gravitational force, G the universal gravitational constant (6.67×10⁻¹¹ N m² kg⁻²), m₁ and m₂ the two masses, and r the separation between their centres."
+            },
+            {
+              "topic": "Circular Motion",
+              "type": "concept",
+              "format": "mcq",
+              "question": "An object moving at constant speed in a circle is NOT in equilibrium because:",
+              "answer": "There is a net (centripetal) force directed toward the centre",
+              "options": [
+                "There is a net (centripetal) force directed toward the centre",
+                "The forces on it are balanced",
+                "Its speed is continually changing",
+                "A centrifugal force pushes it outward"
+              ]
+            },
+            {
+              "topic": "Circular Motion",
+              "type": "formula",
+              "format": "flip",
+              "question": "State the expressions for centripetal acceleration and centripetal force.",
+              "answer": "a_c = v²/r = ω²r (directed toward the centre).\nF_c = mv²/r = mω²r. Centripetal force is the NET inward force — it is provided by real forces (tension, gravity, friction, normal), not an extra separate force."
+            },
+            {
+              "topic": "Vertical Circles",
+              "type": "concept",
+              "format": "mcq",
+              "question": "At the top of a vertical loop, the normal force on a cart on the inside of the track points:",
+              "answer": "Downward, toward the centre of the loop",
+              "options": [
+                "Downward, toward the centre of the loop",
+                "Upward, away from the centre",
+                "Horizontally, tangent to the loop",
+                "There is no normal force at the top"
+              ]
+            },
+            {
+              "topic": "Banked Curves",
+              "type": "formula",
+              "format": "flip",
+              "question": "State the relationship for the ideal (frictionless) banking angle θ of a curve of radius r at speed v.",
+              "answer": "tanθ = v²/(rg). Derived from N cosθ = mg and N sinθ = mv²/r, then dividing. A faster design speed or tighter radius requires a steeper bank."
+            },
+            {
+              "topic": "Energy in Circular Motion",
+              "type": "concept",
+              "format": "typed",
+              "question": "When finding the speed at the top of a vertical loop using energy, what is the correct method and the common mistake to avoid?",
+              "answer": "Use conservation of energy: KE_top = E_total − PE_top, i.e. ½mv_top² = ½mv_bottom² − mg(2r) (or = mgh − mg·2r from a release height h). The common mistake is writing ½mv² = PE directly — you must subtract the PE at the top from the total energy, not equate KE to PE."
+            },
+            {
+              "topic": "Electromagnetic Induction",
+              "type": "formula",
+              "format": "flip",
+              "question": "State Faraday's law of induction and Lenz's law.",
+              "answer": "Faraday: the induced EMF equals the rate of change of magnetic flux linkage: EMF = −N(ΔΦ/Δt). Lenz (the minus sign): the induced current opposes the change in flux that produces it — a consequence of conservation of energy."
+            },
+            {
+              "topic": "Magnetic Forces",
+              "type": "formula",
+              "format": "flip",
+              "question": "State the force on a current-carrying conductor and on a moving charge in a magnetic field.",
+              "answer": "On a conductor: F = BIL sinθ (θ is the angle between current and field).\nOn a moving charge: F = qvB sinθ. Both are maximum when perpendicular (θ = 90°) and zero when parallel (θ = 0°). Use the right-hand/right-hand-slap rule for direction."
+            },
+            {
+              "topic": "Projectile Motion",
+              "type": "concept",
+              "format": "typed",
+              "question": "What are the key rules for resolving projectile motion, and what is the most common error?",
+              "answer": "Treat horizontal and vertical motion independently in two columns. Horizontal velocity is constant (no horizontal force); vertical motion has acceleration g downward. The most common error is mixing the columns — e.g. using the launch speed as the final speed. The impact speed is found by combining the (constant) horizontal velocity with the final vertical velocity using Pythagoras."
+            },
+            {
+              "topic": "Orbits",
+              "type": "concept",
+              "format": "mcq",
+              "question": "For a satellite in a stable circular orbit, the centripetal force is provided by:",
+              "answer": "The gravitational attraction between the satellite and the planet",
+              "options": [
+                "The gravitational attraction between the satellite and the planet",
+                "The thrust of the satellite's engines",
+                "A centrifugal force balancing gravity",
+                "Air resistance in the upper atmosphere"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "applications",
+          "name": "Mathematics Applications",
+          "level": "ATAR Unit 3 · Core concepts",
+          "questions": [
+            {
+              "topic": "Bivariate Data",
+              "type": "concept",
+              "format": "typed",
+              "question": "What does the correlation coefficient r tell you, and what is the coefficient of determination?",
+              "answer": "r measures the strength and direction of a LINEAR relationship between two numerical variables, ranging from −1 (perfect negative) through 0 (no linear relationship) to +1 (perfect positive). The coefficient of determination r² is the proportion (often a %) of the variation in the response variable explained by the linear relationship with the explanatory variable."
+            },
+            {
+              "topic": "Bivariate Data",
+              "type": "concept",
+              "format": "mcq",
+              "question": "A strong correlation between ice-cream sales and drownings is best explained by:",
+              "answer": "A common cause (hot weather) — correlation does not imply causation",
+              "options": [
+                "A common cause (hot weather) — correlation does not imply causation",
+                "Ice-cream sales causing drownings",
+                "Drownings causing ice-cream sales",
+                "A calculation error, since r cannot be this high"
+              ]
+            },
+            {
+              "topic": "Regression",
+              "type": "concept",
+              "format": "mcq",
+              "question": "Using a regression line to predict beyond the range of the data is called:",
+              "answer": "Extrapolation, and it is unreliable",
+              "options": [
+                "Extrapolation, and it is unreliable",
+                "Interpolation, and it is reliable",
+                "Deseasonalising",
+                "Residual analysis"
+              ]
+            },
+            {
+              "topic": "Sequences",
+              "type": "formula",
+              "format": "flip",
+              "question": "State the nth-term formulas for arithmetic and geometric sequences, and their recurrence relations.",
+              "answer": "Arithmetic: Tₙ = a + (n−1)d; recurrence Tₙ₊₁ = Tₙ + d. Sum Sₙ = n/2[2a + (n−1)d].\nGeometric: Tₙ = ar^(n−1); recurrence Tₙ₊₁ = r·Tₙ. Sum Sₙ = a(rⁿ − 1)/(r − 1)."
+            },
+            {
+              "topic": "Time Series",
+              "type": "concept",
+              "format": "typed",
+              "question": "Name the components of a time series and state how to deseasonalise a value.",
+              "answer": "A time series can show trend (long-term direction), seasonal (regular short-term pattern within a year), cyclic (longer multi-year swings), and irregular/random variation. Deseasonalised value = actual value ÷ seasonal index. (The seasonal indices average to 1, or 100%.)"
+            },
+            {
+              "topic": "Graphs & Networks",
+              "type": "concept",
+              "format": "typed",
+              "question": "State the handshake relationship and the condition for an Euler trail.",
+              "answer": "Handshake: the sum of the degrees of all vertices equals twice the number of edges (Σ deg = 2E), so the number of odd-degree vertices is always even. An Euler trail (uses every edge exactly once) exists if and only if the graph is connected and has exactly 0 or 2 vertices of odd degree (2 odd ⇒ the trail starts and ends at them; 0 odd ⇒ it is an Euler circuit)."
+            },
+            {
+              "topic": "Networks",
+              "type": "concept",
+              "format": "mcq",
+              "question": "A minimum spanning tree of a connected network is:",
+              "answer": "A set of edges connecting all vertices with no cycle and least total weight",
+              "options": [
+                "A set of edges connecting all vertices with no cycle and least total weight",
+                "The shortest path between two chosen vertices",
+                "The longest route that visits every vertex once",
+                "Any loop that passes through all vertices"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "accounting",
+          "name": "Accounting & Finance",
+          "level": "ATAR Unit 3 · Theory & multiple choice",
+          "questions": [
+            {
+              "topic": "Cost Classification",
+              "type": "concept",
+              "format": "mcq",
+              "question": "Factory rent in a manufacturing business is best classified as:",
+              "answer": "A product cost (manufacturing overhead)",
+              "options": [
+                "A product cost (manufacturing overhead)",
+                "A period cost expensed when paid",
+                "A direct material cost",
+                "A selling and distribution expense"
+              ]
+            },
+            {
+              "topic": "Cost Classification",
+              "type": "concept",
+              "format": "mcq",
+              "question": "Which of the following is a period cost?",
+              "answer": "Sales commission paid to the sales team",
+              "options": [
+                "Sales commission paid to the sales team",
+                "Direct labour on the production line",
+                "Glue used in assembling the product",
+                "Depreciation of factory machinery"
+              ]
+            },
+            {
+              "topic": "Variance Analysis",
+              "type": "concept",
+              "format": "mcq",
+              "question": "Actual material cost was $4,200; the budget was $3,800. This variance is:",
+              "answer": "Unfavourable, because actual cost exceeded budget",
+              "options": [
+                "Unfavourable, because actual cost exceeded budget",
+                "Favourable, because more was spent on materials",
+                "Favourable, because it is above budget",
+                "Neither — variances only apply to revenue"
+              ]
+            },
+            {
+              "topic": "CVP Analysis",
+              "type": "concept",
+              "format": "mcq",
+              "question": "The break-even point in units is calculated as:",
+              "answer": "Fixed costs ÷ contribution margin per unit",
+              "options": [
+                "Fixed costs ÷ contribution margin per unit",
+                "Fixed costs ÷ selling price per unit",
+                "Total costs ÷ selling price per unit",
+                "Contribution margin ÷ fixed costs"
+              ]
+            },
+            {
+              "topic": "Cash vs Profit",
+              "type": "concept",
+              "format": "mcq",
+              "question": "A business can be profitable yet run out of cash mainly because:",
+              "answer": "Profit includes credit sales and non-cash items like depreciation",
+              "options": [
+                "Profit includes credit sales and non-cash items like depreciation",
+                "Profit and cash are always the same figure",
+                "Cash only falls when the business makes a loss",
+                "Depreciation is a cash outflow each period"
+              ]
+            },
+            {
+              "topic": "Debtor Collection",
+              "type": "concept",
+              "format": "typed",
+              "question": "In a debtors collection schedule, which month receives the largest percentage of a credit sale, and why draw a timeline first?",
+              "answer": "The month OF sale collects the largest share (e.g. 50%), then the following month (e.g. 20%), then two months later (e.g. 8%). Draw a timeline first so you collect FORWARD from the sale month and never reverse the direction."
+            },
+            {
+              "topic": "Investment Appraisal",
+              "type": "concept",
+              "format": "mcq",
+              "question": "Compared with the payback period, an advantage of Net Present Value (NPV) is that it:",
+              "answer": "Accounts for the time value of money across all cash flows",
+              "options": [
+                "Accounts for the time value of money across all cash flows",
+                "Is faster to calculate",
+                "Ignores cash flows after the payback point",
+                "Does not require a discount rate"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "english",
+          "name": "English",
+          "level": "ATAR · Analysis techniques & essay structure",
+          "questions": [
+            {
+              "topic": "Essay Structure",
+              "type": "concept",
+              "format": "typed",
+              "question": "State a reliable paragraph structure for an analytical (text response) essay body paragraph.",
+              "answer": "T.E.E.L: Topic sentence (the point, linked to the question) → Evidence (a short embedded quote or specific textual reference) → Explanation/Analysis (identify the technique and explain its EFFECT on the audience and how it supports your argument) → Link (back to the thesis / question). Memorise this so structure is automatic under time pressure and you spend thinking on the analysis, not the format."
+            },
+            {
+              "topic": "Persuasive Techniques",
+              "type": "concept",
+              "format": "mcq",
+              "question": "Appealing to the audience's sense of right and wrong is an example of:",
+              "answer": "Ethos / moral appeal",
+              "options": [
+                "Ethos / moral appeal",
+                "Logos (logical appeal)",
+                "A rhetorical question",
+                "Anaphora"
+              ]
+            },
+            {
+              "topic": "Language Devices",
+              "type": "concept",
+              "format": "typed",
+              "question": "Define juxtaposition and explain what you must always include when analysing any technique.",
+              "answer": "Juxtaposition is placing two contrasting ideas, images or characters close together to highlight their differences and create meaning. When analysing ANY technique you must go beyond naming it: state the technique, quote the evidence, and explain its EFFECT — what it positions the reader to think, feel or value, and how that serves the composer's purpose."
+            },
+            {
+              "topic": "Comparative Analysis",
+              "type": "concept",
+              "format": "typed",
+              "question": "For a 'compare how two texts represent X' question, what is the trap to avoid (your known weak spot)?",
+              "answer": "Don't develop only the 'subverting/challenging' side. Deliberately give balanced treatment: show where each text CONFORMS to (reinforces) conventional representations as well as where it SUBVERTS them. Plan one conforming and one challenging point per text before writing so both sides are developed."
+            },
+            {
+              "topic": "Tone & Mood",
+              "type": "concept",
+              "format": "mcq",
+              "question": "The difference between tone and mood is:",
+              "answer": "Tone is the composer's attitude; mood is the feeling created in the audience",
+              "options": [
+                "Tone is the composer's attitude; mood is the feeling created in the audience",
+                "They are two words for the same thing",
+                "Tone is the audience's feeling; mood is the writer's attitude",
+                "Tone applies only to poetry; mood only to prose"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

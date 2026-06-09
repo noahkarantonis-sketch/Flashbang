@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Card, Subject, StudyDoc, TestResult, Grade, CardType, CardFormat } from './types'
+import type { BankBranch } from './data/questionBank'
+import { getInitialBank } from './lib/bank'
 import { applyGrade, freshCardDefaults } from './lib/sm2'
 
 function uid() {
@@ -67,6 +69,11 @@ interface State {
   uiStyle: 'classic' | 'refined' // overall visual treatment; classic = original
   density: 'comfortable' | 'compact' // spacing scale
 
+  // question bank (remote-fetched on launch, bundled fallback). Not persisted —
+  // seeded from the localStorage cache/bundled copy and refreshed each launch.
+  bank: BankBranch[]
+  setBank: (b: BankBranch[]) => void
+
   // in-progress Add-cards flow (survives tab switches)
   addDraft: AddDraft
   patchAddDraft: (patch: Partial<AddDraft>) => void
@@ -129,6 +136,7 @@ export const useStore = create<State>()(
       defaultFormat: 'auto',
       uiStyle: 'refined',
       density: 'comfortable',
+      bank: getInitialBank(),
       addDraft: emptyAddDraft,
 
       addSubject: (name) => {
@@ -246,6 +254,8 @@ export const useStore = create<State>()(
       setUiStyle: (uiStyle) => set({ uiStyle }),
       setDensity: (density) => set({ density }),
 
+      setBank: (bank) => set({ bank }),
+
       patchAddDraft: (patch) => set((s) => ({ addDraft: { ...s.addDraft, ...patch } })),
       resetAddDraft: () => set({ addDraft: emptyAddDraft })
     }),
@@ -254,7 +264,7 @@ export const useStore = create<State>()(
       // Persist everything EXCEPT the transient add-cards draft — it should
       // survive tab switches (in-memory) but not a full app restart.
       partialize: (s) => {
-        const { addDraft: _addDraft, ...rest } = s
+        const { addDraft: _addDraft, bank: _bank, ...rest } = s
         return rest
       }
     }
