@@ -78,20 +78,20 @@ Deno.serve(async (req) => {
     if (profile?.plan === 'pro') return json({ error: 'already pro' }, 400)
 
     // Find or create this user's Stripe customer.
-    let customerId = profile?.stripe_customer_id as string | undefined
-    if (!customerId) {
+    const freshCustomer = async (): Promise<string> => {
       const customer = await stripe('customers', {
         email: user.email ?? '',
         'metadata[user_id]': user.id
       })
-      customerId = customer.id
-      await admin.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id)
+      await admin.from('profiles').update({ stripe_customer_id: customer.id }).eq('id', user.id)
+      return customer.id
     }
 
-    // Create the subscription Checkout Session.
-    const session = await stripe('checkout/sessions', {
+    let customerId = (profile?.stripe_customer_id as string | undefined) || (await freshCustomer())
+
+    const sessionParams = () => ({
       mode: 'subscription',
-      customer: customerId!,
+      customer: customerId,
       client_reference_id: user.id,
       'line_items[0][price]': PRICE_ID,
       'line_items[0][quantity]': '1',
@@ -100,6 +100,19 @@ Deno.serve(async (req) => {
       cancel_url: CANCEL_URL,
       allow_promotion_codes: 'true'
     })
+
+    // Create the subscription Checkout Session. A stored customer id can go
+    // stale (test-mode id after the live switch, or a customer deleted in the
+    // Stripe dashboard) — that's recoverable, so mint a fresh customer and
+    // retry once instead of failing the upgrade.
+    let session
+    try {
+      session = await stripe('checkout/sessions', sessionParams())
+    } catch (e) {
+      if (!String(e).includes('No such customer')) throw e
+      customerId = await freshCustomer()
+      session = await stripe('checkout/sessions', sessionParams())
+    }
 
     return json({ url: session.url })
   } catch (e) {
