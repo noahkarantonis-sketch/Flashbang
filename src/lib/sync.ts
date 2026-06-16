@@ -179,11 +179,18 @@ export async function syncOnAuth(userId: string) {
   if (meta.userId !== userId) {
     // A genuinely different account than the one last synced on this device.
     if (remote) {
-      adopt(remote, userId) // pull down the new account's cloud library
+      adopt(remote, userId) // the new account already has cloud data → take it
     } else {
-      // New account with no cloud copy, and local belongs to the previous
-      // account → start clean so we never push their cards into this account.
-      clearLocal(userId)
+      // New account with an empty cloud. If this device holds a library, CLAIM
+      // it for the new account (upload) rather than wiping — so signing into
+      // your real account brings your cards along instead of destroying them.
+      // Only start clean when there's genuinely nothing local to keep.
+      const s = useStore.getState()
+      if (s.cards.length || s.subjects.length || s.docs.length) {
+        await push(userId)
+      } else {
+        clearLocal(userId)
+      }
     }
     return
   }

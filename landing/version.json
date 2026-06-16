@@ -1,5 +1,5 @@
 {
-  "version": "2.4.0",
-  "url": "https://github.com/noahkarantonis-sketch/Flashbang/releases/download/v2.4/Flashbang-Setup-2.4.0.exe",
-  "notes": "Cloud sync — your cards now follow you across desktop, browser and phone in real time. Sign in with the same account everywhere."
+  "version": "2.4.1",
+  "url": "https://github.com/noahkarantonis-sketch/Flashbang/releases/download/v2.4.1/Flashbang-Setup-2.4.1.exe",
+  "notes": "Cloud sync fix — signing into your account now brings your existing cards with it instead of starting empty. Sign in with the same account on every device."
 }

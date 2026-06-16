@@ -84,6 +84,32 @@
   .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
   .cta-note { margin-top: 16px; font-size: 14px; color: var(--ink-soft); }
 
+  /* ---- trust strip ---- */
+  .trust { display: flex; gap: 26px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+  .trust .t { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-soft); }
+  .trust .t svg { flex: 0 0 16px; color: var(--sage); }
+
+  /* ---- faq ---- */
+  .faq { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .faq details { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 22px; }
+  .faq summary { font-weight: 600; font-size: 16px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; color: var(--accent); font-weight: 700; font-size: 20px; line-height: 1; }
+  .faq details[open] summary::after { content: "−"; }
+  .faq p { color: var(--ink-soft); font-size: 15px; margin-top: 12px; }
+
+  /* ---- sticky mobile CTA ---- */
+  .mobile-bar { display: none; }
+  @media (max-width: 680px) {
+    .mobile-bar {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); gap: 10px;
+      background: rgba(247,245,240,.92); backdrop-filter: blur(10px); border-top: 1px solid var(--border);
+    }
+    .mobile-bar .btn { flex: 1; justify-content: center; }
+    body { padding-bottom: 72px; }
+  }
+
   /* ---- app shot mock ---- */
   .shot {
     margin: 64px auto 0; max-width: 920px;
@@ -210,13 +236,23 @@
       Then sit timed, AI-marked practice tests that score you and sharpen your weak spots.
     </p>
     <div class="cta-row">
-      <a class="btn btn-primary btn-lg" href="#download">
+      <a class="btn btn-primary btn-lg web-cta" href="#" style="display:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Open in your browser
+      </a>
+      <a class="btn btn-primary btn-lg desktop-secondary" href="#download">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download for Windows
       </a>
       <a class="btn btn-ghost btn-lg" href="#pricing">See pricing</a>
     </div>
-    <p class="cta-note">Free to start — 5 card generations a week, no card limit on review.</p>
+    <p class="cta-note">Free to start — no card needed. <span class="web-only" style="display:none">Use it instantly in your browser on phone or laptop, or </span><span class="desktop-only">Windows app · </span>5 card generations a week, unlimited review.</p>
+
+    <div class="trust">
+      <span class="t"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Free — no card required</span>
+      <span class="t"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Built by a Year 12 student, for real exams</span>
+      <span class="t"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Cards from your own notes in seconds</span>
+    </div>
 
     <!-- mock app shot -->
     <div class="shot">
@@ -359,16 +395,20 @@
 <section id="download" class="alt">
   <div class="wrap" style="text-align:center">
     <div class="section-head" style="margin-bottom:32px">
-      <h2>Download Flashbang</h2>
-      <p>Free to start. Windows desktop app — Mac &amp; mobile coming soon.</p>
+      <h2>Start studying in seconds</h2>
+      <p><span class="web-only" style="display:none">Open it in your browser on any phone or laptop — nothing to install. Prefer the desktop app? </span>Windows app below<span class="web-only" style="display:none"> too</span>. Mac coming soon.</p>
     </div>
     <div class="cta-row">
-      <a class="btn btn-primary btn-lg" id="download-win" href="https://github.com/noahkarantonis-sketch/Flashbang/releases/download/v2.4/Flashbang-Setup-2.4.0.exe">
+      <a class="btn btn-primary btn-lg web-cta" href="#" style="display:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Open in your browser
+      </a>
+      <a class="btn btn-primary btn-lg desktop-secondary" id="download-win" href="https://github.com/noahkarantonis-sketch/Flashbang/releases/download/v2.4.1/Flashbang-Setup-2.4.1.exe">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download for Windows
       </a>
     </div>
-    <p class="cta-note">Version 2.4 · Windows 10/11</p>
+    <p class="cta-note">Version 2.4.1 · Windows 10/11 · <span class="web-only" style="display:none">browser version syncs with desktop · </span>free to start</p>
 
     <div class="install-steps">
       <h3>Setting up — 3 quick steps</h3>
@@ -382,6 +422,41 @@
   </div>
 </section>
 
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Questions</h2>
+      <p>The honest answers.</p>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Is it actually free?</summary>
+        <p>Yes. You can make cards, review with spaced repetition, use the question bank, get hints and explanations, and sit practice tests without paying anything. Pro ($6/month) only raises the weekly card-generation cap from 5 to 250 — it doesn't lock any features. No trial, no card required to start.</p>
+      </details>
+      <details>
+        <summary>Does it work on my phone?</summary>
+        <p>Yes — open it in your browser and add it to your home screen; it runs like an app, no install needed. There's also a Windows desktop app, and your library syncs between them. Mac is coming.</p>
+      </details>
+      <details>
+        <summary>What subjects does it work for?</summary>
+        <p>Any subject you have notes for. Scan or paste anything — sciences, maths, humanities, languages — and it builds cards from it. It also ships with a built-in bank of exam-style questions for common subjects so you can start before uploading anything.</p>
+      </details>
+      <details>
+        <summary>How is this different from Quizlet or Anki?</summary>
+        <p>Those make you build the deck and decide what to review. Flashbang reads your own notes and builds the cards for you, then tracks what you keep getting wrong and drills exactly those topics — with a confidence graph and AI-marked practice tests that score you by topic. It studies you, not just the deck.</p>
+      </details>
+      <details>
+        <summary>Is the Windows app safe to install?</summary>
+        <p>Yes. On first launch Windows may show a blue "Windows protected your PC" box because the app isn't code-signed yet — click "More info → Run anyway". If you'd rather skip that, just use the browser version.</p>
+      </details>
+      <details>
+        <summary>Who made this?</summary>
+        <p>A Year 12 student in Australia, built solo while sitting the same exams it's designed for — because re-reading notes wasn't working. It's live, it's real, and it's still being improved.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     <a class="brand" href="#top" style="font-size:16px">
@@ -391,6 +466,37 @@
     <div>© 2026 Flashbang · Built for students</div>
   </div>
 </footer>
+
+<!-- sticky mobile CTA -->
+<div class="mobile-bar">
+  <a class="btn btn-primary web-cta" href="#" style="display:none">Open app — free</a>
+  <a class="btn btn-primary desktop-secondary" href="#download">Get Flashbang</a>
+</div>
+
+<script>
+  /* ============================================================
+     FRONT DOOR CONFIG  —  paste your deployed web/PWA app URL here.
+     Until you do, the "Open in your browser" buttons stay HIDDEN and
+     the page behaves exactly as before (Windows download only), so a
+     redeploy can never show a broken button.
+     When set, the browser app becomes the primary call-to-action on
+     every device and the Windows download softens to a secondary option.
+     ============================================================ */
+  var WEB_APP_URL = "https://REPLACE-WITH-WEB-APP-URL"; /* <-- TODO: e.g. "https://flashbang-app.pages.dev" */
+
+  (function () {
+    var ready = WEB_APP_URL && WEB_APP_URL.indexOf("REPLACE-WITH") === -1;
+    if (ready) {
+      document.querySelectorAll(".web-cta").forEach(function (el) { el.href = WEB_APP_URL; el.style.display = ""; });
+      document.querySelectorAll(".web-only").forEach(function (el) { el.style.display = ""; });
+      document.querySelectorAll(".desktop-only").forEach(function (el) { el.style.display = "none"; });
+      // browser app is now primary → soften the desktop download buttons
+      document.querySelectorAll(".desktop-secondary").forEach(function (el) {
+        el.classList.remove("btn-primary"); el.classList.add("btn-ghost");
+      });
+    }
+  })();
+</script>
 
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "426dcbfe5b154e51be3827a15235b488"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
