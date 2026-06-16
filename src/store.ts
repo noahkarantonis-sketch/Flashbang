@@ -117,6 +117,16 @@ interface State {
   setDefaultFormat: (f: 'auto' | 'flip' | 'typed' | 'mcq') => void
   setUiStyle: (s: 'classic' | 'refined') => void
   setDensity: (d: 'comfortable' | 'compact') => void
+
+  // cloud sync — replace all synced content at once (used when adopting the
+  // copy from the server). Display prefs are intentionally NOT touched here.
+  replaceData: (d: {
+    subjects: Subject[]
+    docs: StudyDoc[]
+    cards: Card[]
+    tests: TestResult[]
+    userName?: string
+  }) => void
 }
 
 export const useStore = create<State>()(
@@ -257,7 +267,18 @@ export const useStore = create<State>()(
       setBank: (bank) => set({ bank }),
 
       patchAddDraft: (patch) => set((s) => ({ addDraft: { ...s.addDraft, ...patch } })),
-      resetAddDraft: () => set({ addDraft: emptyAddDraft })
+      resetAddDraft: () => set({ addDraft: emptyAddDraft }),
+
+      replaceData: (d) =>
+        set((s) => ({
+          subjects: d.subjects,
+          docs: d.docs,
+          cards: d.cards,
+          tests: d.tests,
+          userName: d.userName ?? s.userName,
+          // having subjects from the cloud means this device is past onboarding
+          onboarded: d.subjects.length > 0 ? true : s.onboarded
+        }))
     }),
     {
       name: 'study-app-store',

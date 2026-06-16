@@ -1,8 +1,15 @@
 import { supabase } from './supabase'
 
+// Open a Stripe URL. In Electron, window.open is routed to the external browser.
+// In a real browser (esp. mobile), window.open AFTER an await is blocked as a
+// popup — so navigate the current tab instead (Stripe redirects back after).
+function openCheckoutUrl(url: string) {
+  if (/electron/i.test(navigator.userAgent)) window.open(url, '_blank')
+  else window.location.assign(url)
+}
+
 // Client-side billing. Starts a Stripe Checkout for Flashbang Pro by calling
-// the `stripe-checkout` Edge Function, then opens the returned URL in the
-// user's browser (Electron's main process routes window.open -> shell.openExternal).
+// the `stripe-checkout` Edge Function, then opens the returned URL.
 export async function startProCheckout(): Promise<void> {
   const { data, error } = await supabase.functions.invoke('stripe-checkout', { body: {} })
   if (error) {
@@ -16,7 +23,7 @@ export async function startProCheckout(): Promise<void> {
   }
   if (data?.error) throw new Error(data.error)
   if (!data?.url) throw new Error('No checkout URL returned')
-  window.open(data.url, '_blank')
+  openCheckoutUrl(data.url)
 }
 
 // Opens the Stripe Customer Portal so a Pro user can cancel, change card, or
@@ -34,7 +41,7 @@ export async function openBillingPortal(): Promise<void> {
   }
   if (data?.error) throw new Error(data.error)
   if (!data?.url) throw new Error('No portal URL returned')
-  window.open(data.url, '_blank')
+  openCheckoutUrl(data.url)
 }
 
 // Re-read the user's current plan (call after returning from checkout).

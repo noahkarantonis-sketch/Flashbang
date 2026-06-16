@@ -4,6 +4,7 @@ import { useStore } from './store'
 import { supabase, supabaseConfigured } from './lib/supabase'
 import { checkForUpdate, type UpdateInfo } from './lib/version'
 import { fetchRemoteBank } from './lib/bank'
+import { syncOnAuth, syncOnFocus, flushPush, stopSync } from './lib/sync'
 import { Auth } from './screens/Auth'
 import { Onboarding } from './screens/Onboarding'
 import { Home } from './screens/Home'
@@ -38,6 +39,7 @@ export function App() {
   const [studyTopic, setStudyTopic] = useState<string | null>(null)
   const [studyWeak, setStudyWeak] = useState(false)
   const [session, setSession] = useState<Session | null | undefined>(undefined)
+  const [syncReady, setSyncReady] = useState(false)
   const [update, setUpdate] = useState<UpdateInfo | null>(null)
   const [updateDismissed, setUpdateDismissed] = useState(false)
 
@@ -76,6 +78,45 @@ export function App() {
     return () => sub.subscription.unsubscribe()
   }, [])
 
+  // Cloud sync: reconcile this account's library on sign-in. Hold a loader
+  // until the first pull settles so we never flash a stale/empty library.
+  const userId = session?.user?.id
+  useEffect(() => {
+    if (!supabaseConfigured) return
+    if (!userId) {
+      stopSync()
+      setSyncReady(true)
+      return
+    }
+    setSyncReady(false)
+    let cancelled = false
+    syncOnAuth(userId).finally(() => !cancelled && setSyncReady(true))
+    // Don't block the UI forever if the network hangs.
+    const t = setTimeout(() => !cancelled && setSyncReady(true), 6000)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
+  }, [userId])
+
+  // Pull when the app regains focus; flush pending changes when it backgrounds.
+  useEffect(() => {
+    if (!supabaseConfigured) return
+    const onVis = () => {
+      if (document.visibilityState === 'visible') void syncOnFocus()
+      else flushPush()
+    }
+    const onFocus = () => void syncOnFocus()
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('focus', onFocus)
+    window.addEventListener('beforeunload', flushPush)
+    return () => {
+      document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('focus', onFocus)
+      window.removeEventListener('beforeunload', flushPush)
+    }
+  }, [])
+
   const go: Go = (t, topic = null, opts) => {
     setStudyTopic(topic)
     setStudyWeak(!!opts?.weak)
@@ -112,6 +153,23 @@ export function App() {
       <div className="app">
         <div className="titlebar" />
         <Auth />
+      </div>
+    )
+  }
+
+  // --- gate 3.5: pulling this account's library from the cloud ---
+  if (!syncReady) {
+    return (
+      <div className="app">
+        <div className="titlebar" />
+        <div className="screen">
+          <div className="center-col">
+            <Logo size={56} />
+            <p className="muted" style={{ marginTop: 14, fontSize: 13 }}>
+              Syncing your library…
+            </p>
+          </div>
+        </div>
       </div>
     )
   }

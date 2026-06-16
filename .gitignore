@@ -8,6 +8,7 @@ node_modules/
 out/
 release/
 dist/
+dist-web/
 
 # bundled tooling (large binaries, re-downloadable)
 .tools/
