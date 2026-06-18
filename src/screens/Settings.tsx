@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store'
 import { supabase } from '../lib/supabase'
+import { syncNow } from '../lib/sync'
 import { startProCheckout, openBillingPortal, fetchPlan } from '../lib/billing'
 import { DISPLAY_VERSION } from '../lib/version'
 
@@ -47,6 +48,8 @@ export function Settings() {
   const [billingError, setBillingError] = useState('')
   const [showArchive, setShowArchive] = useState(false)
   const [confirmEmpty, setConfirmEmpty] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState('')
 
   const archived = cards.filter((c) => c.suspended)
 
@@ -81,6 +84,15 @@ export function Settings() {
     } finally {
       setUpgrading(false)
     }
+  }
+
+  async function handleSync() {
+    setSyncing(true)
+    setSyncMsg('')
+    const r = await syncNow()
+    setSyncMsg(r === 'ok' ? 'Up to date' : "Couldn't reach the cloud")
+    setSyncing(false)
+    setTimeout(() => setSyncMsg(''), 3000)
   }
 
   async function handleManage() {
@@ -309,6 +321,20 @@ export function Settings() {
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => supabase.auth.signOut()}>
             Sign out
+          </button>
+        </div>
+
+        <div className="divider" />
+
+        <div className="row">
+          <div className="stack">
+            <span>Sync</span>
+            <span className="muted" style={{ fontSize: 13 }}>
+              {syncMsg || 'Your library syncs across your devices automatically.'}
+            </span>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={handleSync} disabled={syncing}>
+            {syncing ? 'Syncing…' : 'Sync now'}
           </button>
         </div>
       </div>

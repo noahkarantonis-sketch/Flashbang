@@ -3,37 +3,52 @@ import { supabase } from '../lib/supabase'
 import { Logo } from '../components/Logo'
 
 export function Auth() {
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
-  const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
 
+  // Single smart flow — no separate "create account" button. We try to sign in
+  // first; only if that fails AND the email is genuinely new do we create the
+  // account. This makes it impossible to accidentally make a second account
+  // with an email you already use (the cause of the duplicate-account mess).
   async function submit() {
     setErr('')
-    setMsg('')
     if (!email.trim() || password.length < 6) {
-      setErr('Enter an email and a password of at least 6 characters.')
+      setErr('Enter your email and a password of at least 6 characters.')
       return
     }
     setBusy(true)
     try {
-      if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({ email: email.trim(), password })
-        if (error) throw error
-        setMsg('Account created. If email confirmation is on, check your inbox, then sign in.')
-        setMode('signin')
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password
-        })
-        if (error) throw error
-        // App.tsx listens for the session change and routes onward.
+      const creds = { email: email.trim(), password }
+
+      // 1. Try to sign in to an existing account.
+      const { error: signInErr } = await supabase.auth.signInWithPassword(creds)
+      if (!signInErr) return // App.tsx picks up the session and routes onward.
+
+      // 2. Sign-in failed — either the email is new, or the password is wrong.
+      //    Attempt to create the account. Supabase only creates one if the email
+      //    is genuinely unused; an existing email either errors or returns no
+      //    session — in both cases we treat it as "wrong password", never a dup.
+      const { data, error: signUpErr } = await supabase.auth.signUp(creds)
+
+      if (signUpErr) {
+        if (/already|registered|exists/i.test(signUpErr.message)) {
+          setErr('That email already has an account — check your password and try again.')
+        } else {
+          setErr(signUpErr.message)
+        }
+        return
       }
+      if (!data.session) {
+        // No session back = the email already exists (Supabase won't sign you in
+        // on a duplicate signup). Don't create a second account.
+        setErr('That email already has an account — check your password and try again.')
+        return
+      }
+      // New account created and signed in. App.tsx routes onward.
     } catch (e: any) {
-      setErr(e?.message || 'Could not authenticate.')
+      setErr(e?.message || 'Could not sign in.')
     } finally {
       setBusy(false)
     }
@@ -49,12 +64,11 @@ export function Auth() {
         </p>
 
         <div className="card" style={{ width: '100%', textAlign: 'left', marginTop: 18 }}>
-          <div className="label" style={{ marginTop: 0 }}>
-            {mode === 'signin' ? 'Sign in' : 'Create account'}
-          </div>
+          <div className="label" style={{ marginTop: 0 }}>Sign in or create your account</div>
           <input
             type="email"
             placeholder="you@email.com"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -62,29 +76,23 @@ export function Auth() {
             style={{ marginTop: 10 }}
             type="password"
             placeholder="Password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
           />
           {err && <p className="c-weak" style={{ fontSize: 13, marginTop: 10 }}>{err}</p>}
-          {msg && <p className="c-strong" style={{ fontSize: 13, marginTop: 10 }}>{msg}</p>}
           <div style={{ marginTop: 16 }}>
             <button className="btn" disabled={busy} onClick={submit}>
-              {busy ? 'Working…' : mode === 'signin' ? 'Sign in' : 'Sign up'}
+              {busy ? 'Working…' : 'Continue'}
             </button>
           </div>
         </div>
 
-        <button
-          className="muted btn-sm"
-          onClick={() => {
-            setMode(mode === 'signin' ? 'signup' : 'signin')
-            setErr('')
-            setMsg('')
-          }}
-        >
-          {mode === 'signin' ? "New here? Create an account" : 'Already have an account? Sign in'}
-        </button>
+        <p className="muted btn-sm" style={{ marginTop: 12, textAlign: 'center' }}>
+          New here? Just enter an email and password — we'll set you up.
+          <br />Already have an account? Same box — we'll sign you in.
+        </p>
       </div>
     </div>
   )

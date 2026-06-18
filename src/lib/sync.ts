@@ -60,6 +60,7 @@ let pushTimer: ReturnType<typeof setTimeout> | null = null
 let subscribed = false
 let currentUserId: string | null = null
 let channel: ReturnType<typeof supabase.channel> | null = null
+let pollTimer: ReturnType<typeof setInterval> | null = null
 
 type Remote = { data: SyncPayload; updated_at: string } | null
 
@@ -160,6 +161,7 @@ export async function syncOnAuth(userId: string) {
   currentUserId = userId
   startSubscription()
   startRealtime(userId)
+  startPolling()
 
   const meta = readMeta()
   const remote = await pull(userId)
@@ -205,10 +207,11 @@ export async function syncOnAuth(userId: string) {
   }
 }
 
-// On regaining focus: flush our pending push, then take the cloud copy if
-// another device wrote since we last synced.
-export async function syncOnFocus() {
-  if (!supabaseConfigured || !currentUserId) return
+// Flush any pending local push (so our edits go up first), then pull the latest
+// and adopt it if another device wrote since we last synced. Returns 'offline'
+// if the server couldn't be reached. The shared core of focus / poll / manual.
+async function reconcile(): Promise<'ok' | 'offline'> {
+  if (!supabaseConfigured || !currentUserId) return 'offline'
   if (pushTimer) {
     clearTimeout(pushTimer)
     pushTimer = null
@@ -216,8 +219,30 @@ export async function syncOnFocus() {
   }
   const meta = readMeta()
   const remote = await pull(currentUserId)
-  if (!remote) return
-  if (remote.updated_at !== meta?.remoteUpdatedAt) adopt(remote, currentUserId)
+  if (remote === undefined) return 'offline'
+  if (remote && remote.updated_at !== meta?.remoteUpdatedAt) adopt(remote, currentUserId)
+  return 'ok'
+}
+
+// On regaining focus, reconcile with the cloud.
+export function syncOnFocus() {
+  void reconcile()
+}
+
+// Manual "Sync now" button — reconcile immediately and report the outcome so
+// the UI can show success/offline. Pull-first (via reconcile) means clicking it
+// on a stale device pulls newer changes rather than overwriting them.
+export function syncNow(): Promise<'ok' | 'offline'> {
+  return reconcile()
+}
+
+// While the app is open AND visible, poll so another device's changes appear
+// within a few seconds even when the realtime channel isn't delivering.
+function startPolling() {
+  if (pollTimer) return
+  pollTimer = setInterval(() => {
+    if (document.visibilityState === 'visible') void reconcile()
+  }, 20000)
 }
 
 // Send any pending change immediately (app backgrounding / unload).
@@ -233,6 +258,10 @@ export function stopSync() {
   if (pushTimer) {
     clearTimeout(pushTimer)
     pushTimer = null
+  }
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
   }
   if (channel) {
     void supabase.removeChannel(channel)
