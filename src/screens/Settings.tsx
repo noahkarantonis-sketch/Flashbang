@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../store'
 import { supabase } from '../lib/supabase'
 import { syncNow } from '../lib/sync'
+import { fetchReferral, type ReferralInfo } from '../lib/referral'
 import { startProCheckout, openBillingPortal, fetchPlan } from '../lib/billing'
 import { DISPLAY_VERSION } from '../lib/version'
 
@@ -50,6 +51,8 @@ export function Settings() {
   const [confirmEmpty, setConfirmEmpty] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
+  const [referral, setReferral] = useState<ReferralInfo | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const archived = cards.filter((c) => c.suspended)
 
@@ -83,6 +86,21 @@ export function Settings() {
       setBillingError(msg === 'already pro' ? '' : `Couldn't start checkout: ${msg}`)
     } finally {
       setUpgrading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchReferral().then(setReferral)
+  }, [])
+
+  async function copyInvite() {
+    if (!referral) return
+    try {
+      await navigator.clipboard.writeText(referral.link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* clipboard blocked — the link is shown for manual copy */
     }
   }
 
@@ -386,6 +404,31 @@ export function Settings() {
           )}
         </div>
       )}
+
+      {/* ---------- Invite ---------- */}
+      <div className="label">Invite friends</div>
+      <div className="card">
+        <div className="row">
+          <div className="stack">
+            <span>Share Flashbang, both get free generations</span>
+            <span className="muted" style={{ fontSize: 13 }}>
+              {referral
+                ? `When a friend joins on your link, you each get bonus card generations. Bonus left: ${referral.bonus}.`
+                : 'Loading your invite link…'}
+            </span>
+          </div>
+          {referral && (
+            <button className="btn btn-sm" onClick={copyInvite}>
+              {copied ? 'Copied' : 'Copy link'}
+            </button>
+          )}
+        </div>
+        {referral && (
+          <div className="muted" style={{ fontSize: 12, marginTop: 10, wordBreak: 'break-all' }}>
+            {referral.link}
+          </div>
+        )}
+      </div>
 
       {/* ---------- Help ---------- */}
       <div className="label">Help</div>

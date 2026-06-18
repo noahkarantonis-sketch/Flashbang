@@ -142,16 +142,19 @@ Deno.serve(async (req) => {
 
   const { data: profile } = await admin
     .from('profiles')
-    .select('plan, usage_count, usage_period')
+    .select('plan, usage_count, usage_period, bonus_balance')
     .eq('id', user.id)
     .single()
 
   const plan = profile?.plan ?? 'free'
   let count = profile?.usage_count ?? 0
-  if (profile?.usage_period !== period) count = 0 // new month resets
+  if (profile?.usage_period !== period) count = 0 // new week resets
+  const bonus = profile?.bonus_balance ?? 0 // referral-earned generations (one-time pool)
 
   const limit = LIMITS[plan] ?? LIMITS.free
-  if (counts && count >= limit) {
+  // Allowed if within the weekly base allowance OR there are referral bonus
+  // generations left to spend once the base is used up.
+  if (counts && count >= limit && bonus <= 0) {
     return json({ error: 'LIMIT_REACHED', plan, limit }, 402)
   }
 
@@ -280,15 +283,30 @@ Return ONLY valid JSON, no prose, no fences:
 
     // --- record usage (only for counted, card-creation ops) ---
     if (counts) {
-      await admin.from('profiles').upsert({
-        id: user.id,
-        plan,
-        usage_count: count + 1,
-        usage_period: period
-      })
+      if (count < limit) {
+        // within the weekly free/pro allowance
+        await admin.from('profiles').upsert({
+          id: user.id,
+          plan,
+          usage_count: count + 1,
+          usage_period: period
+        })
+      } else {
+        // base used up — spend one referral bonus generation instead
+        await admin.from('profiles').update({ bonus_balance: bonus - 1 }).eq('id', user.id)
+      }
     }
 
-    return json({ result, usage: { count: counts ? count + 1 : count, limit, plan } })
+    const withinBase = counts && count < limit
+    return json({
+      result,
+      usage: {
+        count: withinBase ? count + 1 : count,
+        limit,
+        plan,
+        bonus: counts && !withinBase ? bonus - 1 : bonus
+      }
+    })
   } catch (e) {
     // Log the real cause so it shows in the function logs (the catch used to
     // swallow it, which is why failures looked invisible in the dashboard).

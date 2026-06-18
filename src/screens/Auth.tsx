@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { redeemPendingRef } from '../lib/referral'
 import { Logo } from '../components/Logo'
 
 export function Auth() {
@@ -46,7 +47,9 @@ export function Auth() {
         setErr('That email already has an account — check your password and try again.')
         return
       }
-      // New account created and signed in. App.tsx routes onward.
+      // New account created and signed in — redeem an invite code if they came
+      // via a referral link (grants both sides bonus generations). App routes on.
+      await redeemPendingRef()
     } catch (e: any) {
       setErr(e?.message || 'Could not sign in.')
     } finally {

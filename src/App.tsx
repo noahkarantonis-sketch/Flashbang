@@ -5,6 +5,7 @@ import { supabase, supabaseConfigured } from './lib/supabase'
 import { checkForUpdate, type UpdateInfo } from './lib/version'
 import { fetchRemoteBank } from './lib/bank'
 import { syncOnAuth, syncOnFocus, flushPush, stopSync } from './lib/sync'
+import { captureRefFromUrl } from './lib/referral'
 import { Auth } from './screens/Auth'
 import { Onboarding } from './screens/Onboarding'
 import { Home } from './screens/Home'
@@ -58,6 +59,11 @@ export function App() {
 
   useEffect(() => {
     checkForUpdate().then(setUpdate)
+  }, [])
+
+  // Remember a ?ref=CODE invite until the user signs up (then Auth redeems it).
+  useEffect(() => {
+    captureRefFromUrl()
   }, [])
 
   // Refresh the question bank from the hosted copy (added questions reach users

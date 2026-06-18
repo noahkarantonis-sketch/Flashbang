@@ -215,11 +215,21 @@ export function Add({ go }: { go: (t: Tab, topic?: string | null) => void }) {
           {isLimit ? 'Weekly limit reached' : 'Hmm.'}
         </h2>
         <p className="c-weak">{error}</p>
+        {isLimit && (
+          <p className="muted" style={{ fontSize: 13, maxWidth: 320 }}>
+            Or unlock more for free — invite a friend and you both get bonus generations.
+          </p>
+        )}
         <div className="btn-row" style={{ marginTop: 4 }}>
           {isLimit && (
-            <button className="btn btn-sm" onClick={() => go('settings')}>
-              See Pro
-            </button>
+            <>
+              <button className="btn btn-sm" onClick={() => go('settings')}>
+                Invite a friend
+              </button>
+              <button className="btn btn-sm btn-ghost" onClick={() => go('settings')}>
+                See Pro
+              </button>
+            </>
           )}
           <button
             className={'btn btn-sm ' + (isLimit ? 'btn-ghost' : '')}
